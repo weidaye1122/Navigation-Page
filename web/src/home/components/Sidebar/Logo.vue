@@ -2,11 +2,9 @@
   <div class="sidebar-logo-container" :class="{'collapse':collapse}" :style="{ backgroundColor: menuBackground }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/" @click.native="restoreHomeView">
-        <img class="sidebar-logo-image" src="/app-icon.png" alt="">
         <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }} </h1>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/" @click.native="restoreHomeView">
-        <img class="sidebar-logo-image" src="/app-icon.png" alt="">
         <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }} </h1>
       </router-link>
     </transition>
@@ -161,16 +159,6 @@ export default {
       transition: color .18s ease, text-shadow .18s ease, transform .18s ease;
     }
 
-    & .sidebar-logo-image {
-      flex: 0 0 auto;
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      object-fit: cover;
-      box-shadow:
-        0 10px 22px rgba(0, 0, 0, .18),
-        inset 0 1px 0 rgba(255, 255, 255, .24);
-    }
   }
 
   &.collapse {
@@ -185,9 +173,6 @@ export default {
       display: none;
     }
 
-    .sidebar-logo-image {
-      display: none;
-    }
   }
 }
 </style>

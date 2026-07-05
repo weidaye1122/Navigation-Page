@@ -3,17 +3,11 @@
        :style="{ backgroundColor: variables.menuBackground }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <div class="sidebar-title-row">
-          <img class="sidebar-logo-image" src="/app-icon.png" alt="">
-          <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
-        </div>
+        <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
         <span class="sidebar-version" v-text="versionLabel"></span>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <div class="sidebar-title-row">
-          <img class="sidebar-logo-image" src="/app-icon.png" alt="">
-          <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
-        </div>
+        <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
         <span class="sidebar-version" v-text="versionLabel"></span>
       </router-link>
     </transition>
@@ -87,24 +81,6 @@ export default {
       filter: drop-shadow(0 0 12px rgba(79, 124, 255, .18));
     }
 
-    & .sidebar-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      max-width: 100%;
-      min-width: 0;
-    }
-
-    & .sidebar-logo-image {
-      flex: 0 0 auto;
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      object-fit: cover;
-      box-shadow: 0 8px 18px rgba(31, 45, 61, .14);
-    }
-
     & .sidebar-title {
       display: inline-block;
       min-width: 0;
@@ -147,10 +123,6 @@ export default {
     }
 
     .sidebar-title {
-      display: none;
-    }
-
-    .sidebar-logo-image {
       display: none;
     }
 
