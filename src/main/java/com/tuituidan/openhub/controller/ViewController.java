@@ -22,6 +22,19 @@ public class ViewController {
     private UserService userService;
 
     /**
+     * index
+     *
+     * @return String
+     */
+    @GetMapping("/")
+    public String index() {
+        if (userService.needsSetup()) {
+            return "redirect:/login";
+        }
+        return "forward:/index.html";
+    }
+
+    /**
      * login
      *
      * @return String
