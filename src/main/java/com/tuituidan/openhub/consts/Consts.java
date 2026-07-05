@@ -27,9 +27,19 @@ public class Consts {
             : System.getProperty("user.dir");
 
     /**
+     * 应用图标路径.
+     */
+    public static final String APP_ICON_PATH = "/app-icon.png";
+
+    /**
+     * 老版本默认图标路径.
+     */
+    public static final String LEGACY_DEFAULT_ICON_PATH = "/favicon.ico";
+
+    /**
      * 默认图标路径.
      */
-    public static final String DEFAULT_ICON_PATH = "/favicon.ico";
+    public static final String DEFAULT_ICON_PATH = APP_ICON_PATH;
 
     /**
      * 老版本默认logo路径.
@@ -39,7 +49,7 @@ public class Consts {
     /**
      * 默认的logo路径
      */
-    public static final String DEFAULT_LOGO_PATH = DEFAULT_ICON_PATH;
+    public static final String DEFAULT_LOGO_PATH = APP_ICON_PATH;
 
     /**
      * 默认ID

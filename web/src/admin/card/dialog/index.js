@@ -124,7 +124,7 @@ export default {
           }
           if (!this.form.icon) {
             this.form.icon = {
-              src: '/favicon.ico',
+              src: '/app-icon.png',
             };
           }
           if (!this.form.content && !this.form.type.startsWith('dynamic')) {

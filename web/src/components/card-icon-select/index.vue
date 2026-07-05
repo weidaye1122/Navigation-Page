@@ -53,7 +53,7 @@
 </template>
 
 <script>
-const DEFAULT_ICON_PATH = '/favicon.ico';
+const DEFAULT_ICON_PATH = '/app-icon.png';
 
 export default {
   name: "card-icon-select-index",

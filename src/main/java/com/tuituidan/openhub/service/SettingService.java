@@ -107,7 +107,9 @@ public class SettingService implements ApplicationRunner {
     }
 
     private boolean isDefaultLogoPath(String logoPath) {
-        return StringUtils.isBlank(logoPath) || StringUtils.equals(logoPath, Consts.LEGACY_DEFAULT_LOGO_PATH);
+        return StringUtils.isBlank(logoPath)
+                || StringUtils.equals(logoPath, Consts.LEGACY_DEFAULT_ICON_PATH)
+                || StringUtils.equals(logoPath, Consts.LEGACY_DEFAULT_LOGO_PATH);
     }
 
 }

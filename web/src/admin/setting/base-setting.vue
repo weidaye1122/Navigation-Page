@@ -21,31 +21,20 @@
                     placeholder="网站标题"></el-input>
         </div>
       </el-form-item>
-      <el-form-item prop="logoPath" class="site-info-form-item">
-        <div class="site-info-item site-logo-item">
-          <div class="site-info-copy">
-            <strong>网站LOGO</strong>
-          </div>
-          <div class="site-logo-control">
-            <com-icon-uploader v-model="settingItem.logoPath" @remove="onRemoveLogo"></com-icon-uploader>
-          </div>
-        </div>
-      </el-form-item>
     </el-form>
   </el-card>
 </template>
 
 <script>
+const APP_ICON_PATH = '/app-icon.png';
+
 export default {
   name: "base-setting",
-  components: {
-    'com-icon-uploader': () => import('@/components/com-icon-uploader/index.vue'),
-  },
   data() {
     return {
       settingItem: {
         navName: '',
-        logoPath: '',
+        logoPath: APP_ICON_PATH,
         logoToFavicon: true,
         cutOverSpeed: 10,
         nginxOpen: false,
@@ -67,6 +56,7 @@ export default {
       this.$http.get(`/api/v1/setting`)
         .then(res => {
           this.settingItem = res;
+          this.settingItem.logoPath = APP_ICON_PATH;
           this.settingItem.cutOverSpeed = res.cutOverSpeed || 10;
           this.settingItem.logoToFavicon = true;
           this.settingItem.nginxOpen = Boolean(res.nginxOpen);
@@ -76,7 +66,7 @@ export default {
     saveSetting() {
       this.$refs.settingForm.validate(valid => {
         if (valid) {
-          this.$http.patch(`/api/v1/setting`, {...this.settingItem, logoToFavicon: true})
+          this.$http.patch(`/api/v1/setting`, {...this.settingItem, logoPath: APP_ICON_PATH, logoToFavicon: true})
             .then(() => {
               this.$modal.msgSuccess('保存成功');
               setTimeout(() => {
@@ -85,10 +75,6 @@ export default {
             });
         }
       });
-    },
-    onRemoveLogo(url) {
-      // 只有一个，不用判断url，直接移除
-      this.settingItem.logoPath = '';
     },
   }
 }
@@ -129,10 +115,6 @@ export default {
   background: rgba(255, 255, 255, .58);
 }
 
-.site-logo-item {
-  min-height: 88px;
-}
-
 .site-info-copy {
   display: flex;
   min-width: 0;
@@ -163,9 +145,4 @@ export default {
   font-weight: 800;
 }
 
-.site-logo-control {
-  display: flex;
-  align-items: center;
-  min-height: 70px;
-}
 </style>

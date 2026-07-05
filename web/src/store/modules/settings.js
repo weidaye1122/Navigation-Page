@@ -1,15 +1,13 @@
 import http from '@/plugins/http';
 
 const storageSetting = JSON.parse(localStorage.getItem('layout-setting')) || ''
-const DEFAULT_ICON_PATH = '/favicon.ico'
-const LEGACY_DEFAULT_LOGO_PATH = '/assets/images/logo.png'
-const normalizeLogoPath = logoPath => logoPath && logoPath !== LEGACY_DEFAULT_LOGO_PATH ? logoPath : DEFAULT_ICON_PATH
+const APP_ICON_PATH = '/app-icon.png'
 const state = {
   title: process.env.VUE_APP_TITLE,
   sideTheme: storageSetting.sideTheme || 'theme-dark',
   showSettings: false,
   cutOverSpeed: 10,
-  logoPath: DEFAULT_ICON_PATH,
+  logoPath: APP_ICON_PATH,
   logoToFavicon: true,
   showDoc: false,
   menuDefaultOpen: storageSetting.menuDefaultOpen === 'true',
@@ -58,7 +56,7 @@ const actions = {
       const pick = (camelKey, snakeKey) => res[camelKey] !== undefined ? res[camelKey] : res[snakeKey];
       commit('CHANGE_SETTING', {key: 'title', value: pick('navName', 'nav_name')});
       commit('CHANGE_SETTING', {key: 'cutOverSpeed', value: pick('cutOverSpeed', 'cut_over_speed')});
-      commit('CHANGE_SETTING', {key: 'logoPath', value: normalizeLogoPath(pick('logoPath', 'logo_path'))});
+      commit('CHANGE_SETTING', {key: 'logoPath', value: APP_ICON_PATH});
       commit('CHANGE_SETTING', {key: 'logoToFavicon', value: true});
       commit('CHANGE_SETTING', {key: 'showDoc', value: pick('showDoc', 'show_doc')});
       return res;

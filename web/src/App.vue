@@ -5,8 +5,8 @@
 </template>
 
 <script>
-const DEFAULT_ICON_PATH = '/favicon.ico';
-const LEGACY_DEFAULT_LOGO_PATH = '/assets/images/logo.png';
+const APP_ICON_PATH = '/app-icon.png';
+const FAVICON_PATH = '/favicon.png';
 
 export default {
   name: "App",
@@ -24,17 +24,13 @@ export default {
       this.$store.dispatch('user/GetUserInfo');
     },
     loadSettings() {
-      this.$store.dispatch('settings/loadSettings').then(res => {
-        const iconPath = this.normalizeIconPath(res.logoPath);
-        this.setHeadLink('icon', iconPath);
-        this.setHeadLink('shortcut icon', iconPath);
-        this.setHeadLink('apple-touch-icon', iconPath);
-        this.setHeadLink('apple-touch-icon-precomposed', iconPath);
+      this.$store.dispatch('settings/loadSettings').then(() => {
+        this.setHeadLink('icon', FAVICON_PATH);
+        this.setHeadLink('shortcut icon', FAVICON_PATH);
+        this.setHeadLink('apple-touch-icon', APP_ICON_PATH);
+        this.setHeadLink('apple-touch-icon-precomposed', APP_ICON_PATH);
         this.setMeta('apple-mobile-web-app-title', this.$store.state.settings.title);
       })
-    },
-    normalizeIconPath(iconPath) {
-      return iconPath && iconPath !== LEGACY_DEFAULT_LOGO_PATH ? iconPath : DEFAULT_ICON_PATH;
     },
     setHeadLink(rel, href) {
       let link = document.head.querySelector(`link[rel="${rel}"]`);
@@ -44,6 +40,7 @@ export default {
         document.head.appendChild(link);
       }
       link.removeAttribute('sizes');
+      link.type = href.endsWith('.png') ? 'image/png' : '';
       link.href = href;
     },
     setMeta(name, content) {

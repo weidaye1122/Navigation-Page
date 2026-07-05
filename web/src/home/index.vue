@@ -535,12 +535,21 @@ body {
   }
 
   .sidebar-container .sidebar-logo-link {
+    gap: 3px;
     padding: 5px 4px 0;
   }
 
+  .sidebar-container .sidebar-logo-image {
+    width: 18px;
+    height: 18px;
+    border-radius: 7px;
+  }
+
   .sidebar-container .sidebar-title {
-    max-width: 100%;
-    font-size: 11.5px;
+    max-width: calc(100% - 21px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10.8px;
     line-height: 1.1;
   }
 
