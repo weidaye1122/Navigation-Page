@@ -124,8 +124,7 @@ export default {
           }
           if (!this.form.icon) {
             this.form.icon = {
-              text: this.form.title.substr(0, 2),
-              color: this.$refs.refCardIcon.getRandomColor(),
+              src: '/favicon.ico',
             };
           }
           if (!this.form.content && !this.form.type.startsWith('dynamic')) {

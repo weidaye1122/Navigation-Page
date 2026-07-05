@@ -21,7 +21,7 @@ function handleSubmit(e) {
         return false
     }
     btnLoading.style.display = 'block';
-    submitBtn.style.backgroundColor = '#b3b3b3';
+    submitBtn.classList.add('is-loading');
     submitBtn.style.cursor = 'default';
     return true;
 }

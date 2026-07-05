@@ -5,12 +5,16 @@ const state = {
   menus: [],
   datas: [],
   openIds: [],
+  activeCategoryId: '',
 }
 const mutations = {
   CHANGE_DATA: (state, res) => {
     state.menus = res.menus;
     state.datas = res.datas;
     state.openIds = res.menus.filter(it => Array.isArray(it.children) && it.children.length > 0).map(it => it.id);
+  },
+  SET_ACTIVE_CATEGORY: (state, id) => {
+    state.activeCategoryId = id || '';
   },
   LOAD_STAR_CARD: state => {
     const starCategory = buildStarCard(state.datas);
@@ -59,4 +63,3 @@ export default {
   mutations,
   actions
 }
-

@@ -44,14 +44,11 @@ export const routeList = [
       {
         path: 'category/history',
         component: () => import('@/admin/category/category-invalid.vue'),
+        meta: {title: '回收站'},
       },
       {
         path: 'card/list',
         component: () => import('@/admin/card/index.vue'),
-      },
-      {
-        path: 'card/apply',
-        component: () => import('@/admin/card/apply.vue'),
       },
       {
         path: 'role',
@@ -60,10 +57,6 @@ export const routeList = [
       {
         path: 'user',
         component: () => import('@/admin/user/index.vue'),
-      },
-      {
-        path: 'notice',
-        component: () => import('@/admin/notice/index.vue'),
       },
       {
         path: 'setting',

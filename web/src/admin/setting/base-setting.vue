@@ -1,61 +1,34 @@
 <template>
   <el-card>
     <div slot="header" class="card-title">
-      <span>基础设置</span>
+      <span>站点信息</span>
       <el-button class="btn-save" type="text" @click="saveSetting">保存</el-button>
     </div>
     <el-form ref="settingForm"
+             class="site-info-form"
              :model="settingItem"
-             label-width="120px"
+             label-width="0"
              :rules="settingItemRules" @submit.native.prevent>
-      <el-form-item label="网站标题" prop="navName">
-        <el-input v-model="settingItem.navName" v-trim
-                  clearable
-                  maxlength="50"
-                  placeholder="网站标题"></el-input>
-      </el-form-item>
-      <el-form-item label="网站LOGO" prop="logoPath">
-        <div class="multi-form-item">
-          <com-icon-uploader v-model="settingItem.logoPath" @remove="onRemoveLogo"></com-icon-uploader>
-          <div>
-            <el-checkbox v-model="settingItem.logoToFavicon">同步修改favicon</el-checkbox>
-            <com-tip tip="勾选时网站的favicon也将使用此logo图片"></com-tip>
+      <el-form-item prop="navName" class="site-info-form-item">
+        <div class="site-info-item">
+          <div class="site-info-copy">
+            <strong><span class="site-required">*</span>网站标题</strong>
           </div>
-        </div>
-      </el-form-item>
-      <el-form-item label="公告切换间隔" prop="countdown">
-        <div class="multi-form-item">
-          <el-input-number :max="200"
-                           :min="10"
-                           v-model="settingItem.cutOverSpeed"
-                           class="multi-form-item-input"></el-input-number>
-          <div style="margin-left: 5px">秒</div>
-          <com-tip tip="配置首页多个通知公告的自动切换间隔时间"></com-tip>
-        </div>
-      </el-form-item>
-      <el-form-item label="Nginx访问网站" prop="nginxOpen">
-        <div class="multi-form-item">
-          <div>
-            <el-switch v-model="settingItem.nginxOpen">
-            </el-switch>
-          </div>
-          <el-input type="text"
-                    maxlength="100"
+          <el-input class="site-info-control"
+                    v-model="settingItem.navName" v-trim
                     clearable
-                    class="multi-form-item-input"
-                    v-model="settingItem.nginxUrl"
-                    v-trim
-                    placeholder="Nginx地址"></el-input>
-          <com-tip tip="可以配置通过Nginx来访问上传的静态网站，Nginx配置可参考README.md，开启后访问网站时将跳转Nginx地址"></com-tip>
+                    maxlength="50"
+                    placeholder="网站标题"></el-input>
         </div>
       </el-form-item>
-      <el-form-item label="显示帮助文档" prop="showDoc">
-        <div class="multi-form-item">
-          <div>
-            <el-switch v-model="settingItem.showDoc">
-            </el-switch>
+      <el-form-item prop="logoPath" class="site-info-form-item">
+        <div class="site-info-item site-logo-item">
+          <div class="site-info-copy">
+            <strong>网站LOGO</strong>
           </div>
-          <com-tip tip="首页头部显示帮助文档"></com-tip>
+          <div class="site-logo-control">
+            <com-icon-uploader v-model="settingItem.logoPath" @remove="onRemoveLogo"></com-icon-uploader>
+          </div>
         </div>
       </el-form-item>
     </el-form>
@@ -67,14 +40,13 @@ export default {
   name: "base-setting",
   components: {
     'com-icon-uploader': () => import('@/components/com-icon-uploader/index.vue'),
-    'com-tip': () => import('@/components/com-tip/index.vue'),
   },
   data() {
     return {
       settingItem: {
         navName: '',
         logoPath: '',
-        logoToFavicon: false,
+        logoToFavicon: true,
         cutOverSpeed: 10,
         nginxOpen: false,
         nginxUrl: '',
@@ -96,7 +68,7 @@ export default {
         .then(res => {
           this.settingItem = res;
           this.settingItem.cutOverSpeed = res.cutOverSpeed || 10;
-          this.settingItem.logoToFavicon = Boolean(res.logoToFavicon);
+          this.settingItem.logoToFavicon = true;
           this.settingItem.nginxOpen = Boolean(res.nginxOpen);
           this.settingItem.showDoc = Boolean(res.showDoc);
         });
@@ -104,7 +76,7 @@ export default {
     saveSetting() {
       this.$refs.settingForm.validate(valid => {
         if (valid) {
-          this.$http.patch(`/api/v1/setting`, {...this.settingItem})
+          this.$http.patch(`/api/v1/setting`, {...this.settingItem, logoToFavicon: true})
             .then(() => {
               this.$modal.msgSuccess('保存成功');
               setTimeout(() => {
@@ -122,15 +94,78 @@ export default {
 }
 </script>
 
-<style scoped>
-.multi-form-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+<style scoped lang="scss">
+.site-info-form {
+  padding-top: 0;
 }
 
-.multi-form-item .multi-form-item-input {
-  margin-left: 15px;
-  flex: auto;
+.site-info-form-item {
+  margin-bottom: 14px;
+}
+
+.site-info-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.site-info-form ::v-deep .el-form-item__content {
+  margin-left: 0 !important;
+  line-height: normal;
+}
+
+.site-info-form ::v-deep .el-form-item__error {
+  left: 126px;
+  padding-top: 5px;
+}
+
+.site-info-item {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  min-height: 74px;
+  padding: 16px 18px;
+  border: 1px solid rgba(28, 42, 58, .08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .58);
+}
+
+.site-logo-item {
+  min-height: 88px;
+}
+
+.site-info-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+
+  strong {
+    color: #1c2635;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+}
+
+.site-required {
+  display: inline-block;
+  margin-right: 4px;
+  color: #f56c6c;
+}
+
+.site-info-control {
+  max-width: 420px;
+}
+
+.site-info-form ::v-deep .el-input__inner {
+  height: 44px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.site-logo-control {
+  display: flex;
+  align-items: center;
+  min-height: 70px;
 }
 </style>

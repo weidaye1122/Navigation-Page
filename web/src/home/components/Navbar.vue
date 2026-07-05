@@ -1,48 +1,8 @@
 <template>
   <div class="navbar" style="display: flex">
-    <hamburger id="hamburger-container"
-               :is-active="sidebar.opened"
-               class="hamburger-container" @toggleClick="toggleSideBar"/>
-    <el-input
-      ref="refSearchInput"
-      class="header-search"
-      size="small"
-      clearable
-      placeholder="请输入关键字回车搜索..."
-      v-model="keywords"
-      v-trim
-      @change="searchHandler"
-      @clear="searchHandler"
-      suffix-icon="el-icon-search">
-    </el-input>
     <carousel-flip-notice class="carousel-flip-notice"></carousel-flip-notice>
-    <div class="right-menu">
-      <template v-if="device!=='mobile'">
-        <screenfull class="right-menu-item hover-effect"/>
-        <doc v-if="showDoc" class="right-menu-item hover-effect"/>
-      </template>
-
-      <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
-        <div class="avatar-wrapper">
-          <header-avatar></header-avatar>
-          <i class="el-icon-caret-bottom"/>
-        </div>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item v-if="!loginUser.id"
-                            @click.native="$store.dispatch('settings/loadVersion')"
-          >登录</el-dropdown-item>
-          <router-link v-if="loginUser.id && loginUser.isAdmin" to="/admin/category">
-            <el-dropdown-item>后台管理</el-dropdown-item>
-          </router-link>
-          <el-dropdown-item @click.native="setting = true">布局设置</el-dropdown-item>
-          <el-dropdown-item v-if="loginUser.id" @click.native="openChangePassword">修改密码</el-dropdown-item>
-          <el-dropdown-item v-if="loginUser.id && !loginUser.isAdmin">
-            <card-apply>卡片申请</card-apply>
-          </el-dropdown-item>
-          <el-dropdown-item v-if="loginUser.id" divided @click.native="logout">退出登录</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-      <change-password ref="changePassword"></change-password>
+    <div v-if="device!=='mobile' && showDoc" class="right-menu">
+      <doc class="right-menu-item hover-effect"/>
     </div>
   </div>
 </template>
@@ -52,102 +12,68 @@ import {mapGetters} from 'vuex'
 
 export default {
   components: {
-    'hamburger': () => import('@/components/Hamburger'),
-    'screenfull': () => import('@/home/components/Screenfull'),
-    'change-password': () => import('@/home/components/change-password'),
-    'header-avatar': () => import('@/components/header-avatar'),
     'doc': () => import('@/home/components/doc'),
-    'card-apply': () => import('@/home/components/card-apply'),
     'carousel-flip-notice': () => import('@/home/components/carousel-flip-notice'),
-  },
-  data() {
-    return {
-      keywords: ''
-    }
   },
   computed: {
     ...mapGetters([
       'sidebar',
       'device',
-      'loginUser',
       'showDoc'
     ]),
-    setting: {
-      get() {
-        return this.$store.state.settings.showSettings
-      },
-      set(val) {
-        this.$store.dispatch('settings/changeSetting', {
-          key: 'showSettings',
-          value: val
-        })
-      }
-    },
   },
-  mounted() {
-    document.addEventListener('keypress', event => {
-      if (!document.body.className.includes('el-popup-parent--hidden')) {
-        this.$refs.refSearchInput.focus()
-      }
-    })
-  },
-  methods: {
-    searchHandler() {
-      this.$store.dispatch('home/loadHomeCards', this.keywords);
-    },
-    toggleSideBar() {
-      this.$store.dispatch('app/toggleSideBar')
-    },
-    async logout() {
-      this.$confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$store.dispatch('user/LogOut').then(() => {
-          this.$store.dispatch('settings/loadVersion');
-        })
-      }).catch(() => {
-      });
-    },
-    openChangePassword() {
-      this.$refs.changePassword.open();
-    }
-  }
 }
 </script>
 
 <style lang="scss" scoped>
 .navbar {
   display: flex;
-  height: 60px;
+  height: 64px;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+  align-items: center;
+  margin: 16px 18px 0 0;
+  padding: 0 14px;
+  background:
+    linear-gradient(136deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .04) 48%, rgba(255, 255, 255, .08)),
+    var(--home-glass-bg);
+  border: 1px solid var(--home-glass-border);
+  border-radius: 26px;
+  box-shadow:
+    0 22px 62px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .36),
+    inset 0 -1px 0 rgba(255, 255, 255, .08);
+  -webkit-backdrop-filter: blur(42px) saturate(1.7) contrast(1.08);
+  backdrop-filter: blur(42px) saturate(1.7) contrast(1.08);
 
   .hamburger-container {
-    line-height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     height: 100%;
+    width: 58px;
     float: left;
     cursor: pointer;
-    transition: background .3s;
+    color: rgba(255, 255, 255, .78);
+    transition: background .2s ease, color .2s ease;
     -webkit-tap-highlight-color: transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      color: #ffffff;
+      background: rgba(255, 255, 255, .12);
     }
-  }
-
-  .header-search {
-    float: left;
-    line-height: 60px;
-    width: 250px;
   }
 
   .carousel-flip-notice {
     flex: auto;
-    margin: 0 20px;
+    margin: 0 18px 0 2px;
+    color: rgba(255, 255, 255, .78);
+
+    ::v-deep a,
+    ::v-deep span,
+    ::v-deep div {
+      color: inherit;
+    }
   }
 
   .errLog-container {
@@ -159,50 +85,43 @@ export default {
     float: right;
     height: 100%;
     line-height: 60px;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
 
     &:focus {
       outline: none;
     }
 
     .right-menu-item {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 0 8px;
-      height: 100%;
+      height: 40px;
       font-size: 18px;
-      color: #5a5e66;
+      color: rgba(255, 255, 255, .76);
       vertical-align: text-bottom;
+      border-radius: 18px;
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background .2s ease, color .2s ease;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          color: #ffffff;
+          background: rgba(255, 255, 255, .12);
         }
       }
     }
 
-    .avatar-container {
-      margin-right: 30px;
+  }
+}
 
-      .avatar-wrapper {
-        position: relative;
-
-        .user-avatar {
-          cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-        }
-
-        .el-icon-caret-bottom {
-          cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
-          font-size: 12px;
-        }
-      }
+@media (max-width: 900px) {
+  .navbar {
+    .carousel-flip-notice {
+      display: none;
     }
   }
 }

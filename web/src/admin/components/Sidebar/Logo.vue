@@ -3,11 +3,9 @@
        :style="{ backgroundColor: variables.menuBackground }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <img :src="logoPath" class="sidebar-logo" />
         <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <img :src="logoPath" class="sidebar-logo" />
         <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
       </router-link>
     </transition>
@@ -32,9 +30,6 @@ export default {
     sideTheme() {
       return this.$store.state.settings.sideTheme
     },
-    logoPath(){
-      return this.$store.state.settings.logoPath;
-    },
     title() {
       return this.$store.state.settings.title;
     }
@@ -55,38 +50,55 @@ export default {
 .sidebar-logo-container {
   position: relative;
   width: 100%;
-  height: 50px;
-  line-height: 50px;
-  background: #2b2f3a;
+  height: 88px;
+  padding: 20px 14px 10px;
+  line-height: 1;
+  background: transparent !important;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
 
   & .sidebar-logo-link {
-    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
     width: 100%;
+    padding: 0;
+    color: inherit;
+    text-decoration: none;
+    transition: transform .18s ease, filter .18s ease;
 
-    & .sidebar-logo {
-      width: 32px;
-      height: 32px;
-      vertical-align: middle;
-      margin-right: 12px;
+    &:hover {
+      transform: scale(1.035);
+      filter: drop-shadow(0 0 12px rgba(79, 124, 255, .18));
     }
 
     & .sidebar-title {
       display: inline-block;
+      min-width: 0;
       margin: 0;
-      color: #fff;
-      font-weight: 600;
-      line-height: 50px;
-      font-size: 14px;
-      font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
-      vertical-align: middle;
+      color: #233044 !important;
+      font-weight: 900;
+      line-height: 1.1;
+      font-size: 22px;
+      font-family: Inter, Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+      letter-spacing: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
   &.collapse {
-    .sidebar-logo {
-      margin-right: 0px;
+    padding: 14px 8px 10px;
+
+    .sidebar-logo-link {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .sidebar-title {
+      display: none;
     }
   }
 }

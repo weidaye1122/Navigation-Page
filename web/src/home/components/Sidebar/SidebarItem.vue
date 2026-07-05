@@ -1,8 +1,10 @@
 <template>
   <div>
     <template v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)">
-      <el-menu-item @click="menuItemClickHandler(item.id)" :index="item.id"
-                    :class="{'submenu-title-noDropdown':!isNest}">
+      <el-menu-item @click="menuItemClickHandler(item.id)"
+                    :index="item.id"
+                    :data-menu-id="item.id"
+                    :class="{'submenu-title-noDropdown':!isNest, 'is-home-active': item.id === activeCategoryId}">
         <item :icon="onlyOneChild.icon|| item.icon" :title="onlyOneChild.name"/>
       </el-menu-item>
     </template>
@@ -49,16 +51,85 @@ export default {
     this.onlyOneChild = null
     return {}
   },
+  computed: {
+    activeCategoryId() {
+      return this.$store.state.home.activeCategoryId;
+    },
+  },
   methods: {
     menuItemClickHandler(id) {
-      const rows = document.getElementById(id);
-      rows.scrollIntoView(
-        {behavior: 'smooth', block: 'start'});
-      const classList = rows.nextSibling.firstChild.classList;
-      classList.add('blink-box');
-      setTimeout(() => {
-        classList.remove('blink-box');
-      }, 3200);
+      this.cancelHomeScrollAnimation();
+      this.$store.commit('home/SET_ACTIVE_CATEGORY', id);
+      this.$nextTick(() => {
+        const scrollToTitle = () => {
+          if (this.$store.state.home.activeCategoryId !== id) {
+            return;
+          }
+          const anchor = document.getElementById(id);
+          const category = anchor && anchor.closest('.category-main');
+          const title = category && category.querySelector('.category-title');
+          const titleText = category && category.querySelector('.category-title-text');
+          const scroller = document.querySelector('.app-main');
+          const trigger = Array.from(document.querySelectorAll('.sidebar-container .el-menu-item'))
+            .find(item => item.getAttribute('data-menu-id') === id);
+          const triggerText = trigger && trigger.querySelector('.sidebar-menu-title');
+
+          if (!title || !scroller || !trigger) {
+            return;
+          }
+
+          const rightTarget = titleText || title;
+          const leftTarget = triggerText || trigger;
+          const desktopScale = this.getHomeDesktopScale();
+          const maxScrollTop = scroller.scrollHeight - scroller.clientHeight;
+          const nextScrollTop = Math.max(0, Math.min(
+            maxScrollTop,
+            scroller.scrollTop + (rightTarget.getBoundingClientRect().top - leftTarget.getBoundingClientRect().top) / desktopScale
+          ));
+
+          this.animateHomeScroll(scroller, nextScrollTop, id);
+        };
+
+        requestAnimationFrame(() => requestAnimationFrame(scrollToTitle));
+      });
+    },
+    cancelHomeScrollAnimation() {
+      if (window.__teamNavHomeScrollFrame) {
+        cancelAnimationFrame(window.__teamNavHomeScrollFrame);
+      }
+      window.__teamNavHomeScrollFrame = null;
+      window.__teamNavHomeScrollToken = (window.__teamNavHomeScrollToken || 0) + 1;
+      return window.__teamNavHomeScrollToken;
+    },
+    getHomeDesktopScale() {
+      const viewport = document.querySelector('.home-scale-viewport');
+      const wrapper = document.querySelector('.home-wrapper');
+      if (!viewport || !viewport.classList.contains('is-desktop-scale') || (wrapper && wrapper.classList.contains('mobile'))) {
+        return 1;
+      }
+      const scale = viewport && Number(getComputedStyle(viewport).getPropertyValue('--desktop-scale'));
+      return scale > 0 ? scale : 1;
+    },
+    animateHomeScroll(scroller, targetTop, id) {
+      const token = this.cancelHomeScrollAnimation();
+      const startTop = scroller.scrollTop;
+      const distance = targetTop - startTop;
+      const duration = Math.min(460, Math.max(180, Math.abs(distance) * 0.28));
+      const startTime = window.performance.now();
+      const easeOut = progress => 1 - Math.pow(1 - progress, 3);
+      const step = now => {
+        if (this.$store.state.home.activeCategoryId !== id || window.__teamNavHomeScrollToken !== token) {
+          return;
+        }
+        const progress = Math.min(1, (now - startTime) / duration);
+        scroller.scrollTop = startTop + distance * easeOut(progress);
+        if (progress < 1) {
+          window.__teamNavHomeScrollFrame = requestAnimationFrame(step);
+          return;
+        }
+        window.__teamNavHomeScrollFrame = null;
+      };
+      window.__teamNavHomeScrollFrame = requestAnimationFrame(step);
     },
     hasOneShowingChild(children = [], parent) {
       if (!children) {

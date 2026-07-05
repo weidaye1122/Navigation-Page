@@ -1,60 +1,30 @@
 <template>
   <div class="category-children" :class="{'large-layout-container': cardSize==='large'}">
-    <div class="card-sm card-md card-xl card-xxl" v-for="card in datas" :key="card.id">
-      <el-popover trigger="hover" popper-class="my-popover" :close-delay="0">
-        <el-card class="nav-card"
-                 shadow="hover"
-                 slot="reference"
-                 @click.native="cardClickHandler(card)">
-          <div style="display: flex">
-            <ivu-avatar v-if="card.icon.src"
-                        :src="card.icon.src"
-                        :shape="cardIconShape"
-                        class="nav-card-icon"></ivu-avatar>
-            <ivu-avatar v-else
-                        class="nav-card-icon"
-                        :shape="cardIconShape"
-                        :style="{background: card.icon.color}">{{ card.icon.text }}
-            </ivu-avatar>
-            <div class="nav-card-content">
-              <div v-text="card.title" class="card-title text-ellipsis"></div>
-              <div v-if="card.type.startsWith('dynamic') && !card.content" class="card-content text-ellipsis">
-                <i class="el-icon-loading"></i>正在加载...
-              </div>
-              <div v-else v-text="card.content" class="card-content text-ellipsis"></div>
+    <div class="card-sm card-md card-xl card-xxl" :class="{'is-starred': card.star}" v-for="card in datas" :key="card.id">
+      <el-card class="nav-card"
+               :class="{'is-link-card': card.url}"
+               shadow="hover"
+               @click.native="cardClickHandler(card)">
+        <span v-if="card.star" class="nav-card-star"><i class="el-icon-star-on"></i></span>
+        <div class="nav-card-inner">
+          <ivu-avatar v-if="card.icon.src"
+                      :src="card.icon.src"
+                      :shape="cardIconShape"
+                      class="nav-card-icon"></ivu-avatar>
+          <ivu-avatar v-else
+                      class="nav-card-icon"
+                      :shape="cardIconShape"
+                      :style="{background: card.icon.color}">{{ card.icon.text }}
+          </ivu-avatar>
+          <div class="nav-card-content">
+            <div v-text="card.title" class="card-title text-ellipsis"></div>
+            <div v-if="card.type.startsWith('dynamic') && !card.content" class="card-content text-ellipsis">
+              <i class="el-icon-loading"></i>正在加载...
             </div>
-          </div>
-        </el-card>
-        <div slot="default">
-          <i v-if="card.star" class="el-icon-star-on card-star"
-             @click="starHandler(card)"
-             title="移除常用"></i>
-          <i v-else class="el-icon-star-off card-star"
-             @click="starHandler(card)"
-             title="置为常用"></i>
-          <div v-if="card.title" v-text="card.title"></div>
-          <div v-if="card.content" v-text="card.content"></div>
-          <div v-if="card.privateContent" class="text-danger" v-text="card.privateContent"></div>
-          <div v-if="card.url">
-            <el-link icon="el-icon-link"
-                     type="success"
-                     target="_blank"
-                     :href="card.url">{{card.url}}</el-link>
-          </div>
-          <div v-if="card.showQrcode">
-            <img :src="showQrcodeHandler(card.url)" alt=""/>
-          </div>
-          <div v-if="Array.isArray(card.attachments) && card.attachments.length > 0">
-            <el-row type="flex" justify="space-between" v-for="item in card.attachments" :key="item.id">
-              <el-link icon="el-icon-download"
-                       @click.native="downloadAttachment(item.id)"
-                       type="warning">{{ item.name }}
-              </el-link>
-              <span style="text-align: right; min-width: 50px;" v-text="item.size"></span>
-            </el-row>
+            <div v-else v-text="card.content" class="card-content text-ellipsis"></div>
           </div>
         </div>
-      </el-popover>
+      </el-card>
     </div>
   </div>
 </template>
@@ -102,40 +72,106 @@ export default {
 
 <style lang="scss" scoped>
 .category-children {
-  display: flex;
-  flex-wrap: wrap;
-  padding-left: 20px;
-  padding-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 12px;
+  padding: 8px 0 6px;
 
   .nav-card {
-    border: none;
-    box-shadow: 0 2px 2px 0 rgba(16, 116, 231, 0.14), 0 1px 5px 0 rgba(16, 116, 231, 0.12), 0 3px 1px -2px rgba(16, 116, 231, 0.2);
-    cursor: pointer;
+    position: relative;
+    height: 68px;
+    overflow: hidden;
+    border: 1px solid var(--home-glass-border-strong);
+    border-radius: 22px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .04) 45%, rgba(255, 255, 255, .08)),
+      var(--home-glass-bg);
+    box-shadow:
+      0 26px 66px rgba(0, 0, 0, .3),
+      inset 0 1px 0 rgba(255, 255, 255, .38),
+      inset 0 -1px 0 rgba(255, 255, 255, .08);
+    -webkit-backdrop-filter: blur(44px) saturate(1.72) contrast(1.08);
+    backdrop-filter: blur(44px) saturate(1.72) contrast(1.08);
+    cursor: default;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
 
     ::v-deep .el-card__body {
-      padding: 13px;
+      height: 100%;
+      padding: 8px 12px;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      border-radius: inherit;
+      background:
+        linear-gradient(104deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .18) 34%, rgba(255, 255, 255, .36) 64%, rgba(255, 255, 255, .1)),
+        radial-gradient(circle at 18% 50%, rgba(237, 112, 64, .5), transparent 42%),
+        radial-gradient(circle at 84% 22%, rgba(142, 204, 226, .48), transparent 38%);
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(112deg, rgba(255, 255, 255, .24), transparent 38%),
+        radial-gradient(circle at 82% 8%, rgba(255, 255, 255, .2), transparent 34%);
+      opacity: .76;
+      transition: opacity .18s ease;
+    }
+
+    &.is-link-card {
+      cursor: pointer;
+    }
+
+    .nav-card-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      min-width: 0;
     }
 
     .nav-card-icon {
       vertical-align: middle;
-      width: 40px
+      flex: 0 0 auto;
+      width: 36px !important;
+      height: 36px !important;
+      line-height: 36px !important;
+      border: 1px solid rgba(255, 255, 255, .36);
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, .24),
+        inset 0 1px 0 rgba(255, 255, 255, .22);
+      font-weight: 800;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
     .nav-card-content {
-      width: calc(100% - 46px);
-      margin-left: 6px
+      min-width: 0;
+      width: calc(100% - 54px);
+      margin-left: 9px
     }
 
     .card-title {
-      font-size: 14px;
-      font-weight: bold;
+      color: rgba(255, 255, 255, .95);
+      font-size: 17px;
+      line-height: 1.15;
+      font-weight: 800;
     }
 
     .card-content {
-      font-size: 13px;
-      color: #0366d6;
+      font-size: 12px;
+      color: rgba(226, 255, 244, .72);
       display: block;
-      margin-top: 4px;
+      margin-top: 3px;
+      font-weight: 600;
     }
 
     .text-ellipsis {
@@ -147,70 +183,122 @@ export default {
   }
 
   .nav-card:hover {
-    box-shadow: 0 8px 17px 0 rgba(3, 102, 214, 0.2), 0 6px 20px 0 rgba(3, 102, 214, 0.19);
-    border-color: #eee;
+    transform: translateY(-4px) scale(1.012);
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, .34),
+      0 0 0 5px rgba(255, 255, 255, .1),
+      0 0 42px rgba(255, 255, 255, .28),
+      0 20px 52px rgba(237, 112, 64, .28),
+      0 38px 92px rgba(0, 0, 0, .42),
+      inset 0 1px 0 rgba(255, 255, 255, .72),
+      inset 0 0 0 1px rgba(255, 255, 255, .32),
+      inset 0 -1px 0 rgba(255, 255, 255, .24);
+    border-color: rgba(255, 255, 255, .94);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .15) 45%, rgba(255, 255, 255, .24)),
+      var(--home-glass-bg-strong);
+
+    &::before {
+      opacity: .9;
+    }
+
+    &::after {
+      opacity: 1;
+      background:
+        linear-gradient(112deg, rgba(255, 255, 255, .42), transparent 42%),
+        linear-gradient(270deg, rgba(255, 255, 255, .22), transparent 34%),
+        radial-gradient(circle at 82% 8%, rgba(255, 255, 255, .32), transparent 34%);
+    }
+
+    .nav-card-icon {
+      transform: scale(1.08);
+      border-color: rgba(255, 255, 255, .72);
+      box-shadow:
+        0 0 0 3px rgba(255, 255, 255, .12),
+        0 14px 30px rgba(0, 0, 0, .28),
+        inset 0 1px 0 rgba(255, 255, 255, .38);
+    }
+
+    .card-title {
+      text-shadow: 0 0 16px rgba(255, 255, 255, .28);
+    }
   }
 }
 
 .large-layout-container {
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+
+  .nav-card {
+    height: 78px;
+  }
+
   .card-title {
-    font-size: 16px !important;
+    font-size: 18px !important;
   }
   .card-content {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
   .nav-card-icon{
-    width: 45px !important;
-    height: 45px !important;
-    line-height: 45px !important;
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
   }
 }
 
 .card-sm {
-  -ms-flex: 0 0 50%;
-  flex: 0 0 50%;
-  max-width: 50%;
-  padding-right: 20px;
-  margin-top: 20px;
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
   .card-md {
-    -ms-flex: 0 0 25%;
-    flex: 0 0 25%;
-    max-width: 25%;
+    min-width: 0;
   }
   .large-layout-container .card-md {
-    -ms-flex: 0 0 33.333333%;
-    flex: 0 0 33.333333%;
-    max-width: 33.333333%;
+    min-width: 0;
   }
 }
 
 
 @media (min-width: 1200px) {
   .card-xl {
-    -ms-flex: 0 0 20%;
-    flex: 0 0 20%;
-    max-width: 20%;
+    min-width: 0;
   }
   .large-layout-container .card-xl {
-    -ms-flex: 0 0 25%;
-    flex: 0 0 25%;
-    max-width: 25%;
+    min-width: 0;
   }
 }
 
 @media (min-width: 1680px) {
   .card-xxl {
-    -ms-flex: 0 0 16.666%;
-    flex: 0 0 16.666%;
-    max-width: 16.666%;
+    min-width: 0;
   }
   .large-layout-container .card-xxl {
-    -ms-flex: 0 0 20%;
-    flex: 0 0 20%;
-    max-width: 20%;
+    min-width: 0;
+  }
+}
+
+.nav-card-star {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 1;
+  color: #d9852f;
+  font-size: 14px;
+  filter: drop-shadow(0 4px 8px rgba(217, 133, 47, .28));
+}
+
+@media (max-width: 620px) {
+  .category-children {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .category-children .nav-card {
+    height: 68px;
+
+    ::v-deep .el-card__body {
+      padding: 8px 12px;
+    }
   }
 }
 
@@ -230,25 +318,28 @@ export default {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #c0c0c0;
-  border-radius: 3px;
+  background-color: rgba(255, 255, 255, .22);
+  border-radius: 6px;
 }
 
 .my-popover {
-  background-color: rgba(70, 76, 91, .9);
+  background-color: rgba(31, 42, 39, .94);
   color: white;
   max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(24, 33, 30, .28);
 
   .popper__arrow {
-    border-bottom-color: rgba(70, 76, 91, .9) !important;
+    border-bottom-color: rgba(31, 42, 39, .94) !important;
   }
 
   .popper__arrow::after {
-    border-bottom-color: rgba(70, 76, 91, .9) !important;
+    border-bottom-color: rgba(31, 42, 39, .94) !important;
   }
 
   .card-star {
@@ -260,7 +351,7 @@ export default {
   }
 
   .card-star.el-icon-star-on {
-    color: gold;
+    color: #f0be5d;
     font-weight: bolder;
   }
 }

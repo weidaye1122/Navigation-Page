@@ -46,6 +46,7 @@ service.interceptors.response.use(res => {
         const constructor = Vue.extend(login);
         const instance = new constructor();
         instance.$mount();
+        document.body.appendChild(instance.$el);
       }
       return Promise.reject(err)
     }

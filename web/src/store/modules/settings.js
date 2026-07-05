@@ -1,13 +1,16 @@
 import http from '@/plugins/http';
 
 const storageSetting = JSON.parse(localStorage.getItem('layout-setting')) || ''
+const DEFAULT_ICON_PATH = '/favicon.ico'
+const LEGACY_DEFAULT_LOGO_PATH = '/assets/images/logo.png'
+const normalizeLogoPath = logoPath => logoPath && logoPath !== LEGACY_DEFAULT_LOGO_PATH ? logoPath : DEFAULT_ICON_PATH
 const state = {
   title: process.env.VUE_APP_TITLE,
   sideTheme: storageSetting.sideTheme || 'theme-dark',
   showSettings: false,
   cutOverSpeed: 10,
-  logoPath: '/assets/images/logo.png',
-  logoToFavicon: false,
+  logoPath: DEFAULT_ICON_PATH,
+  logoToFavicon: true,
   showDoc: false,
   menuDefaultOpen: storageSetting.menuDefaultOpen === 'true',
   menuAccordion: storageSetting.menuAccordion === 'true',
@@ -52,11 +55,12 @@ const actions = {
   // 加载配置
   loadSettings({commit}) {
     return http.get('/api/v1/setting').then(res => {
-      commit('CHANGE_SETTING', {key: 'title', value: res.navName});
-      commit('CHANGE_SETTING', {key: 'cutOverSpeed', value: res.cutOverSpeed});
-      commit('CHANGE_SETTING', {key: 'logoPath', value: res.logoPath});
-      commit('CHANGE_SETTING', {key: 'logoToFavicon', value: res.logoToFavicon});
-      commit('CHANGE_SETTING', {key: 'showDoc', value: res.showDoc});
+      const pick = (camelKey, snakeKey) => res[camelKey] !== undefined ? res[camelKey] : res[snakeKey];
+      commit('CHANGE_SETTING', {key: 'title', value: pick('navName', 'nav_name')});
+      commit('CHANGE_SETTING', {key: 'cutOverSpeed', value: pick('cutOverSpeed', 'cut_over_speed')});
+      commit('CHANGE_SETTING', {key: 'logoPath', value: normalizeLogoPath(pick('logoPath', 'logo_path'))});
+      commit('CHANGE_SETTING', {key: 'logoToFavicon', value: true});
+      commit('CHANGE_SETTING', {key: 'showDoc', value: pick('showDoc', 'show_doc')});
       return res;
     });
   },
@@ -75,4 +79,3 @@ export default {
   mutations,
   actions
 }
-

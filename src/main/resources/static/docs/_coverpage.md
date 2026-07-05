@@ -1,4 +1,4 @@
-<img src="assets/images/logo.png" alt="logo" style="zoom:60%;" />
+<img src="favicon.ico" alt="logo" style="zoom:60%;" />
 
 # 团队导航服务
 

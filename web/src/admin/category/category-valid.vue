@@ -229,11 +229,11 @@ export default {
     },
     handleRemove(row) {
       const ids = row ? [row.id] : this.selections.map(item => item.id);
-      this.$modal.confirm('将移除到历史分类，是否确认移除选中的数据项？').then(() => {
+      this.$modal.confirm('将移入回收站，是否确认移除选中的数据项？').then(() => {
         return this.$http.patch('/api/v1/category/valid/false', ids);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("已移除到历史分类");
+        this.$modal.msgSuccess("已移入回收站");
       });
     },
   }

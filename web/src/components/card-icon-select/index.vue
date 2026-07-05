@@ -53,6 +53,8 @@
 </template>
 
 <script>
+const DEFAULT_ICON_PATH = '/favicon.ico';
+
 export default {
   name: "card-icon-select-index",
   components: {
@@ -155,6 +157,7 @@ export default {
       }
       this.textIcon.text = '';
       this.textIcon.color = this.getRandomColor();
+      this.icons.push({src: DEFAULT_ICON_PATH, checked: true});
     },
     getRandomColor(){
       return this.randomColor[Math.floor(Math.random() * this.randomColor.length)];

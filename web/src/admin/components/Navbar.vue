@@ -4,11 +4,6 @@
                @toggleClick="toggleSideBar"/>
 
     <div class="right-menu" v-if="version.currentVersion">
-      <div class="right-menu-item hover-effect btn-apply" @click="$router.push({path: '/admin/card/apply'})">
-        <el-badge :hidden="applyCount === 0" :value="applyCount" :max="99">
-          <i class="el-icon-message-solid" title="申请列表"></i>
-        </el-badge>
-      </div>
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
           <header-avatar></header-avatar>
@@ -43,12 +38,10 @@ export default {
     ...mapGetters([
       'sidebar',
       'version',
-      'applyCount',
     ]),
   },
   mounted() {
     this.$store.dispatch('settings/loadVersion');
-    this.$store.dispatch('user/refreshApplyCount');
   },
   methods: {
     toggleSideBar() {
@@ -72,22 +65,35 @@ export default {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 50px;
-  overflow: hidden;
+  height: 56px;
+  overflow: visible;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(28, 42, 58, .10);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .74);
+  backdrop-filter: blur(24px) saturate(1.22);
+  -webkit-backdrop-filter: blur(24px) saturate(1.22);
+  box-shadow:
+    0 18px 46px rgba(31, 45, 61, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .76);
 
   .hamburger-container {
-    line-height: 46px;
-    height: 100%;
-    float: left;
+    width: 42px;
+    height: 42px;
+    line-height: 42px;
+    margin-left: 8px;
     cursor: pointer;
-    transition: background .3s;
+    border-radius: 14px;
+    color: #324054;
+    transition: background .18s ease, box-shadow .18s ease, color .18s ease;
     -webkit-tap-highlight-color: transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      color: #1d2a3a;
+      background: rgba(79, 124, 255, .12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
     }
   }
 
@@ -106,61 +112,68 @@ export default {
   }
 
   .right-menu {
-    float: right;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     height: 100%;
-    line-height: 50px;
+    line-height: 1;
+    margin-left: auto;
+    padding-right: 12px;
 
     &:focus {
       outline: none;
     }
 
-    .btn-apply {
-      margin-right: 10px;
-      padding: 0 12px !important;
-
-      ::v-deep .el-badge__content {
-        top: 7px;
-      }
-
-    }
-
     .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 42px;
       font-size: 18px;
-      color: #5a5e66;
-      vertical-align: text-bottom;
+      color: #354257;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .44);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background .18s ease, box-shadow .18s ease, color .18s ease, transform .18s ease;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          color: #1e2d40;
+          background: rgba(79, 124, 255, .12);
+          transform: translateY(-1px);
+          box-shadow:
+            0 10px 22px rgba(31, 45, 61, .08),
+            inset 0 1px 0 rgba(255, 255, 255, .82);
         }
       }
     }
 
     .avatar-container {
-      margin-right: 30px;
+      min-width: 64px;
+      margin-right: 0;
 
       .avatar-wrapper {
         position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 100%;
+        padding: 0 10px 0 4px;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 12px;
         }
 
         .el-icon-caret-bottom {
           cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
+          position: static;
           font-size: 12px;
+          color: #6b7586;
         }
       }
     }

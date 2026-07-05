@@ -14,6 +14,7 @@ import com.tuituidan.openhub.bean.vo.CardVo;
 import com.tuituidan.openhub.bean.vo.CategoryVo;
 import com.tuituidan.openhub.bean.vo.HomeDataVo;
 import com.tuituidan.openhub.consts.CardTypeEnum;
+import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.openhub.repository.CardRepository;
 import com.tuituidan.openhub.repository.UserRepository;
 import com.tuituidan.openhub.service.cardtype.CardTypeServiceFactory;
@@ -33,12 +34,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import javax.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -174,6 +178,7 @@ public class CardService {
             item.setDynamicBuilder(null);
             CardVo vo = BeanExtUtils.convert(item, CardVo::new, ignoreProperty);
             cardTypeServiceFactory.getService(item.getType()).formatCardVo(vo);
+            applyDefaultIcon(vo);
             vo.setAttachments(attachmentMap.get(item.getId()));
             vo.setContent(StringUtils.defaultString(vo.getContent()));
             vo.setStar(false);
@@ -193,6 +198,7 @@ public class CardService {
         return list.stream().map(item -> {
             CardVo vo = BeanExtUtils.convert(item, CardVo::new);
             vo.setCategoryName(categoryService.buildCategoryName(item.getCategory()));
+            applyDefaultIcon(vo);
             vo.setAttachments(attachmentMap.get(item.getId()));
             return vo;
         }).sorted(Comparator.comparing(CardVo::getSort)).collect(Collectors.toList());
@@ -227,8 +233,43 @@ public class CardService {
         return page.map(item -> {
             CardVo vo = BeanExtUtils.convert(item, CardVo::new);
             vo.setCategoryName(categoryService.buildCategoryName(item.getCategory()));
+            applyDefaultIcon(vo);
             vo.setAttachments(attachmentMap.get(item.getId()));
             vo.setApplyBy(userMap.get(vo.getApplyBy()));
+            return vo;
+        });
+    }
+
+    /**
+     * 查询回收站卡片
+     *
+     * @param keywords keywords
+     * @param pageIndex pageIndex
+     * @param pageSize pageSize
+     * @return Page
+     */
+    public Page<CardVo> selectRecycle(String keywords, Integer pageIndex, Integer pageSize) {
+        Page<Card> page = cardRepository.findAll((root, query, builder) -> {
+            Predicate predicate = builder.conjunction();
+            predicate.getExpressions().add(builder.isFalse(root.get("valid")));
+            if (StringUtils.isNotBlank(keywords)) {
+                String like = "%" + StringUtils.lowerCase(keywords) + "%";
+                predicate.getExpressions().add(builder.or(
+                        builder.like(builder.lower(root.get("title")), like),
+                        builder.like(builder.lower(root.get("content")), like)
+                ));
+            }
+            return predicate;
+        }, PageRequest.of(pageIndex, pageSize, Sort.by("category").ascending().and(Sort.by("sort").ascending())));
+        if (page.getTotalElements() <= 0) {
+            return page.map(item -> new CardVo());
+        }
+        Map<String, List<AttachmentVo>> attachmentMap = attachmentService.getCardAttachmentMap(page.toList());
+        return page.map(item -> {
+            CardVo vo = BeanExtUtils.convert(item, CardVo::new);
+            vo.setCategoryName(categoryService.buildCategoryName(item.getCategory()));
+            applyDefaultIcon(vo);
+            vo.setAttachments(attachmentMap.get(item.getId()));
             return vo;
         });
     }
@@ -240,9 +281,11 @@ public class CardService {
      * @param cardDto cardDto
      */
     public void save(String id, CardDto cardDto) {
+        applyDefaultIcon(cardDto);
         this.saveIcon(cardDto.getIcon());
         Card card = BeanExtUtils.convert(cardDto, Card::new);
         card.setId(StringUtils.isBlank(id) ? StringExtUtils.getUuid() : id);
+        card.setValid(true);
         cardTypeServiceFactory.getService(card.getType()).supplySave(id, card);
         if (card.getSort() == null) {
             card.setSort(cardRepository.getMaxSort(card.getCategory()) + 1);
@@ -272,6 +315,26 @@ public class CardService {
         }
     }
 
+    private void applyDefaultIcon(CardDto cardDto) {
+        if (isEmptyIcon(cardDto.getIcon())) {
+            cardDto.setIcon(buildDefaultIcon());
+        }
+    }
+
+    private void applyDefaultIcon(CardVo cardVo) {
+        if (isEmptyIcon(cardVo.getIcon())) {
+            cardVo.setIcon(buildDefaultIcon());
+        }
+    }
+
+    private boolean isEmptyIcon(CardIconDto icon) {
+        return icon == null || (StringUtils.isBlank(icon.getSrc()) && StringUtils.isBlank(icon.getText()));
+    }
+
+    private CardIconDto buildDefaultIcon() {
+        return new CardIconDto().setSrc(Consts.DEFAULT_ICON_PATH);
+    }
+
     /**
      * 上移和下移，交换两个卡片序号
      *
@@ -289,11 +352,20 @@ public class CardService {
     }
 
     /**
-     * delete
+     * 移入回收站
      *
      * @param id id
      */
     public void delete(String[] id) {
+        setValid(Arrays.asList(id), false);
+    }
+
+    /**
+     * 永久删除
+     *
+     * @param id id
+     */
+    public void hardDelete(String[] id) {
         List<String> ids = Arrays.asList(id);
         List<Card> cards = cardRepository.findAllById(ids);
         TransactionUtils.execute(() -> {
@@ -303,6 +375,33 @@ public class CardService {
         for (Card card : cards) {
             cardTypeServiceFactory.getService(card.getType()).supplyDelete(card);
         }
+    }
+
+    /**
+     * 设置是否在回收站
+     *
+     * @param ids ids
+     * @param valid valid
+     */
+    public void setValid(List<String> ids, Boolean valid) {
+        Assert.isTrue(CollectionUtils.isNotEmpty(ids), "ids不能为空");
+        List<Card> cards = cardRepository.findAllById(ids).stream()
+                .filter(item -> !Objects.equals(valid, item.getValid()))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(cards)) {
+            return;
+        }
+        if (BooleanUtils.isTrue(valid)) {
+            Map<String, Integer> sortMap = new HashMap<>();
+            for (Card card : cards) {
+                Integer sort = sortMap.computeIfAbsent(card.getCategory(),
+                        category -> cardRepository.getMaxSort(category) + 1);
+                card.setSort(sort);
+                sortMap.put(card.getCategory(), sort + 1);
+            }
+        }
+        cards.forEach(item -> item.setValid(valid));
+        cardRepository.saveAll(cards);
     }
 
     /**

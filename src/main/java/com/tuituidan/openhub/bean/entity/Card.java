@@ -73,6 +73,10 @@ public class Card implements ISortEntity<Card> {
     @Column(name = "sort")
     private Integer sort;
 
+    @Column(name = "valid")
+    @ColumnDefault("true")
+    private Boolean valid;
+
     @Column(name = "audit")
     @ColumnDefault("true")
     private Boolean audit;

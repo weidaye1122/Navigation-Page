@@ -1,5 +1,10 @@
 <template>
-  <el-drawer size="320px" :visible="visible" :with-header="false" :append-to-body="true" :show-close="false">
+  <el-drawer size="360px"
+             custom-class="home-settings-drawer"
+             :visible="visible"
+             :with-header="false"
+             :append-to-body="true"
+             :show-close="false">
     <div class="drawer-container">
       <div>
         <div class="setting-drawer-content">
@@ -7,7 +12,9 @@
             <h3 class="drawer-title">主题风格设置</h3>
           </div>
           <div class="setting-drawer-block-checbox">
-            <div class="setting-drawer-block-checbox-item" @click="handleTheme('theme-dark')">
+            <div class="setting-drawer-block-checbox-item"
+                 :class="{'is-active': sideTheme === 'theme-dark'}"
+                 @click="handleTheme('theme-dark')">
               <img src="@/assets/images/dark.svg" alt="dark">
               <div v-if="sideTheme === 'theme-dark'" class="setting-drawer-block-checbox-selectIcon"
                    style="display: block;">
@@ -20,7 +27,9 @@
                 </i>
               </div>
             </div>
-            <div class="setting-drawer-block-checbox-item" @click="handleTheme('theme-light')">
+            <div class="setting-drawer-block-checbox-item"
+                 :class="{'is-active': sideTheme === 'theme-light'}"
+                 @click="handleTheme('theme-light')">
               <img src="@/assets/images/light.svg" alt="light">
               <div v-if="sideTheme === 'theme-light'" class="setting-drawer-block-checbox-selectIcon"
                    style="display: block;">
@@ -59,8 +68,10 @@
             <el-radio label="large">较大</el-radio>
           </el-radio-group>
         </div>
-        <el-button size="small" type="primary" plain icon="el-icon-document-add" @click="saveSetting">保存配置</el-button>
-        <el-button size="small" plain icon="el-icon-refresh" @click="resetSetting">重置配置</el-button>
+        <div class="drawer-actions">
+          <el-button size="small" type="primary" plain icon="el-icon-document-add" @click="saveSetting">保存配置</el-button>
+          <el-button size="small" plain icon="el-icon-refresh" @click="resetSetting">重置配置</el-button>
+        </div>
       </div>
     </div>
   </el-drawer>
@@ -160,66 +171,252 @@ export default {
 <style lang="scss" scoped>
 .setting-drawer-content {
   .setting-drawer-title {
-    margin-bottom: 12px;
-    color: rgba(0, 0, 0, .85);
-    font-size: 14px;
-    line-height: 22px;
-    font-weight: bold;
+    margin-bottom: 14px;
+    color: rgba(255, 255, 255, .94);
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 900;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, .26);
   }
 
   .setting-drawer-block-checbox {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    gap: 16px;
+    margin-top: 14px;
+    margin-bottom: 22px;
 
     .setting-drawer-block-checbox-item {
       position: relative;
-      margin-right: 16px;
-      border-radius: 2px;
+      width: 72px;
+      height: 72px;
+      padding: 9px;
+      border: 1px solid rgba(255, 255, 255, .24);
+      border-radius: 20px;
       cursor: pointer;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .06)),
+        rgba(255, 255, 255, .08);
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, .22),
+        inset 0 1px 0 rgba(255, 255, 255, .24);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+
+      &:hover,
+      &.is-active {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, .64);
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, .1)),
+          rgba(255, 255, 255, .12);
+        box-shadow:
+          0 0 0 4px rgba(255, 255, 255, .08),
+          0 22px 46px rgba(0, 0, 0, .28),
+          inset 0 1px 0 rgba(255, 255, 255, .42);
+      }
 
       img {
-        width: 48px;
-        height: 48px;
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
       }
 
       .setting-drawer-block-checbox-selectIcon {
         position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
-        padding-top: 15px;
-        padding-left: 24px;
-        color: #1890ff;
+        right: 9px;
+        bottom: 9px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 50%;
+        background: rgba(237, 112, 64, .86);
         font-weight: 700;
-        font-size: 14px;
+        font-size: 13px;
+        box-shadow:
+          0 10px 22px rgba(237, 112, 64, .24),
+          inset 0 1px 0 rgba(255, 255, 255, .44);
       }
     }
   }
 }
 
 .drawer-container {
-  padding: 20px;
-  font-size: 14px;
+  min-height: 100%;
+  padding: 34px 28px;
+  font-size: 16px;
   line-height: 1.5;
   word-wrap: break-word;
+  color: rgba(255, 255, 255, .88);
+  background: transparent;
 
   .drawer-title {
-    margin-bottom: 12px;
-    color: rgba(0, 0, 0, .85);
-    font-size: 14px;
-    line-height: 22px;
+    margin: 0 0 16px;
+    color: rgba(255, 255, 255, .94);
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 900;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, .26);
   }
 
   .drawer-item {
-    color: rgba(0, 0, 0, .65);
-    font-size: 14px;
-    padding: 12px 0;
+    min-height: 62px;
+    color: rgba(236, 244, 241, .78);
+    font-size: 17px;
+    padding: 16px 0;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, .14);
+
+    > span {
+      flex: 0 0 auto;
+      font-weight: 800;
+      color: rgba(255, 255, 255, .82);
+    }
   }
+
+  .drawer-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .drawer-actions .el-button {
+    flex: 1;
+  }
+}
+</style>
+
+<style lang="scss">
+.home-settings-drawer.el-drawer {
+  overflow: hidden;
+  border-left: 1px solid rgba(255, 255, 255, .38);
+  border-radius: 28px 0 0 28px;
+  background:
+    linear-gradient(152deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .055) 44%, rgba(255, 255, 255, .1)),
+    rgba(8, 15, 15, .58);
+  box-shadow:
+    -30px 0 78px rgba(0, 0, 0, .34),
+    inset 1px 0 0 rgba(255, 255, 255, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .34);
+  -webkit-backdrop-filter: blur(46px) saturate(1.72) contrast(1.08);
+  backdrop-filter: blur(46px) saturate(1.72) contrast(1.08);
+}
+
+.home-settings-drawer.el-drawer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, .24), transparent 32%),
+    radial-gradient(circle at 84% 72%, rgba(237, 112, 64, .16), transparent 36%),
+    linear-gradient(120deg, rgba(255, 255, 255, .12), transparent 42%);
+}
+
+.home-settings-drawer .el-drawer__body {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  background: transparent;
+}
+
+.home-settings-drawer .el-divider {
+  margin: 28px 0;
+  background-color: rgba(255, 255, 255, .16);
+}
+
+.home-settings-drawer .el-checkbox,
+.home-settings-drawer .el-radio {
+  margin-right: 0;
+  color: rgba(236, 244, 241, .78);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.home-settings-drawer .el-checkbox + .el-checkbox,
+.home-settings-drawer .el-radio + .el-radio {
+  margin-left: 18px;
+}
+
+.home-settings-drawer .el-checkbox__label,
+.home-settings-drawer .el-radio__label {
+  color: rgba(236, 244, 241, .8);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.home-settings-drawer .el-checkbox__inner,
+.home-settings-drawer .el-radio__inner {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(255, 255, 255, .36);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)),
+    rgba(255, 255, 255, .08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+.home-settings-drawer .el-checkbox__input.is-checked .el-checkbox__inner,
+.home-settings-drawer .el-radio__input.is-checked .el-radio__inner {
+  border-color: rgba(255, 255, 255, .7);
+  background: rgba(237, 112, 64, .88);
+}
+
+.home-settings-drawer .el-checkbox__input.is-checked + .el-checkbox__label,
+.home-settings-drawer .el-radio__input.is-checked + .el-radio__label {
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(255, 255, 255, .18);
+}
+
+.home-settings-drawer .el-button {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, .86);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)),
+    rgba(255, 255, 255, .08);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .22);
+  font-size: 15px;
+  font-weight: 800;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.home-settings-drawer .el-button:hover,
+.home-settings-drawer .el-button:focus {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, .58);
+  color: #ffffff;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .09)),
+    rgba(255, 255, 255, .12);
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, .08),
+    0 18px 38px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .34);
+}
+
+.home-settings-drawer .el-button--primary.is-plain {
+  border-color: rgba(255, 255, 255, .42);
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .12) 42%, rgba(237, 112, 64, .38)),
+    rgba(237, 112, 64, .58);
+  box-shadow:
+    0 18px 38px rgba(237, 112, 64, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .48);
 }
 </style>

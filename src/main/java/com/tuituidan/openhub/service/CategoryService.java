@@ -343,13 +343,14 @@ public class CategoryService {
                 Card card = new Card();
                 card.setId(item.getId());
                 card.setAudit(true);
+                card.setValid(true);
                 card.setCategory(item.getPid());
                 card.setContent(item.getUrl());
                 card.setHasAttachment(false);
                 if (StringUtils.isNotBlank(item.getIcon())) {
                     card.setIcon(new CardIconDto().setSrc(IconUtils.saveBase64(item.getIcon())));
                 } else {
-                    card.setIcon(IconUtils.buildTextIcon(item.getName()));
+                    card.setIcon(new CardIconDto().setSrc(Consts.DEFAULT_ICON_PATH));
                 }
                 card.setPrivateContent(StringUtils.EMPTY);
                 card.setShowQrcode(false);

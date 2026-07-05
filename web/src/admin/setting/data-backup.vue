@@ -1,34 +1,41 @@
 <template>
   <el-card>
     <div slot="header" class="card-title">
-      <span>数据导入导出</span>
+      <span>数据维护</span>
     </div>
-    <div>
-      <el-divider content-position="left">数据备份/还原</el-divider>
-      <div class="backup-panel">
+    <div class="maintenance-list">
+      <div class="maintenance-item">
+        <div class="maintenance-copy">
+          <strong>数据备份</strong>
+          <span>导出当前站点数据，用于迁移或还原。</span>
+        </div>
         <el-button type="primary"
-                   class="backup-item"
                    icon="el-icon-download"
                    :loading="backupLoading"
                    size="small"
-                   @click="backupHandler">备份数据
-        </el-button>
+                   @click="backupHandler">备份数据</el-button>
+      </div>
+      <div class="maintenance-item">
+        <div class="maintenance-copy">
+          <strong>备份还原</strong>
+          <span>上传 zip 备份包恢复数据。</span>
+        </div>
         <file-uploader type="revert"
-                       class="backup-item"
                        accept="application/zip"
                        :file-list="[]"
                        @file-change="revertUploadSuccess"
-                       :limit="1">还原备份数据
-        </file-uploader>
+                       :limit="1">还原备份</file-uploader>
       </div>
-      <el-divider content-position="left">浏览器书签导入</el-divider>
-      <div class="backup-panel">
+      <div class="maintenance-item">
+        <div class="maintenance-copy">
+          <strong>书签导入</strong>
+          <span>上传浏览器书签 HTML，预览后导入。</span>
+        </div>
         <file-uploader type="bookmark"
                        accept="text/html"
                        :file-list="[]"
                        @file-change="bookmarkUploadSuccess"
-                       :limit="1">上传浏览器书签
-        </file-uploader>
+                       :limit="1">上传书签</file-uploader>
       </div>
       <bookmark-preview ref="refBookmark"></bookmark-preview>
     </div>
@@ -75,16 +82,42 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.backup-panel {
-  margin-bottom: 80px;
-  overflow: hidden;
+.maintenance-list {
+  display: grid;
+  gap: 14px;
+}
 
-  .backup-item {
-    float: right;
+.maintenance-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 74px;
+  padding: 16px 18px;
+  border: 1px solid rgba(28, 42, 58, .08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .58);
+}
+
+.maintenance-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    color: #1c2635;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: 0;
   }
 
-  .backup-item.el-button {
-    float: left;
+  span {
+    margin-top: 6px;
+    color: #687386;
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 700;
   }
 }
 </style>

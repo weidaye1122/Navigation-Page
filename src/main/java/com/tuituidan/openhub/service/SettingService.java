@@ -44,7 +44,7 @@ public class SettingService implements ApplicationRunner {
             setting.setCutOverSpeed(10 * 1000);
             needSave = true;
         }
-        if (StringUtils.isBlank(setting.getLogoPath())) {
+        if (isDefaultLogoPath(setting.getLogoPath())) {
             setting.setLogoPath(Consts.DEFAULT_LOGO_PATH);
             needSave = true;
         }
@@ -79,7 +79,7 @@ public class SettingService implements ApplicationRunner {
     public void saveSetting(SettingDto settingDto) {
         Setting setting = BeanExtUtils.convert(settingDto, Setting::new).setId("setting-id");
         setting.setNginxUrl(StringUtils.stripEnd(settingDto.getNginxUrl(), "/"));
-        if (StringUtils.isBlank(setting.getLogoPath())) {
+        if (isDefaultLogoPath(setting.getLogoPath())) {
             setting.setLogoPath(Consts.DEFAULT_LOGO_PATH);
         }
         settingRepository.save(setting);
@@ -104,6 +104,10 @@ public class SettingService implements ApplicationRunner {
         settingCache.setLogoToFavicon(BooleanUtils.isTrue(setting.getLogoToFavicon()));
         settingCache.setCutOverSpeed((setting.getCutOverSpeed() == null ? 10 : setting.getCutOverSpeed()) * 1000);
         settingCache.setLogoPath(setting.getLogoPath());
+    }
+
+    private boolean isDefaultLogoPath(String logoPath) {
+        return StringUtils.isBlank(logoPath) || StringUtils.equals(logoPath, Consts.LEGACY_DEFAULT_LOGO_PATH);
     }
 
 }

@@ -22,9 +22,9 @@ export default {
 
     if (title) {
       if (title.length > 5) {
-        vnodes.push(<span slot='title' title={(title)}>{(title)}</span>)
+        vnodes.push(<span slot='title' class='sidebar-menu-title' title={(title)}>{(title)}</span>)
       } else {
-        vnodes.push(<span slot='title'>{(title)}</span>)
+        vnodes.push(<span slot='title' class='sidebar-menu-title'>{(title)}</span>)
       }
     }
     return vnodes

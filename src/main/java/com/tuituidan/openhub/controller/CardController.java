@@ -78,6 +78,17 @@ public class CardController {
     }
 
     /**
+     * 查询回收站卡片
+     *
+     * @return List
+     */
+    @GetMapping("/card/recycle/page")
+    public ResponseEntity<Page<CardVo>> selectRecycle(@RequestParam(required = false) String keywords,
+            @RequestParam Integer pageIndex, @RequestParam Integer pageSize) {
+        return ResponseEntity.ok(cardService.selectRecycle(keywords, pageIndex - 1, pageSize));
+    }
+
+    /**
      * 通过申请
      *
      * @param id id
@@ -137,6 +148,31 @@ public class CardController {
     @DeleteMapping("/card/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") String[] id) {
         cardService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 设置卡片是否有效
+     *
+     * @param id id
+     * @param valid valid
+     * @return Void
+     */
+    @PatchMapping("/card/valid/{valid}")
+    public ResponseEntity<Void> setValid(@RequestBody List<String> id, @PathVariable Boolean valid) {
+        cardService.setValid(id, valid);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 永久删除卡片
+     *
+     * @param id id
+     * @return Void
+     */
+    @DeleteMapping("/card/{id}/actions/permanent")
+    public ResponseEntity<Void> hardDelete(@PathVariable("id") String[] id) {
+        cardService.hardDelete(id);
         return ResponseEntity.noContent().build();
     }
 

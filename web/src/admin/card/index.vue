@@ -179,11 +179,11 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row ? row.id : this.selections.map(item => item.id).join(',');
-      this.$modal.confirm('是否确认删除选中的数据项？').then(() => {
+      this.$modal.confirm('将移入回收站，是否确认移除选中的卡片？').then(() => {
         return this.$http.delete(`/api/v1/card/${ids}`);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("删除成功");
+        this.$modal.msgSuccess("已移入回收站");
       });
     },
   }
