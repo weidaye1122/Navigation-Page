@@ -68,7 +68,7 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 12px;
     height: 72px;
     width: 100%;
     padding: 0;
