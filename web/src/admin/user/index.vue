@@ -7,7 +7,7 @@
           <el-input
             v-model="queryParam.keywords"
             v-trim
-            placeholder="请输入登录账号或用户姓名进行搜索"
+            placeholder="请输入账号或用户名进行搜索"
             clearable
             style="width: 300px"
             @keyup.enter.native="getList"
@@ -72,11 +72,9 @@
       <el-table-column label="序号" type="index" width="55" align="center" :index="table.index"/>
       <el-table-column type="selection" width="50" align="center"
                        :selectable="tableSelectable"/>
-      <el-table-column label="登录账号" align="center" prop="username"
+      <el-table-column label="账号" align="center" prop="username"
                        :show-overflow-tooltip="true"/>
-      <el-table-column label="用户姓名" align="center" prop="nickname"
-                       :show-overflow-tooltip="true"/>
-      <el-table-column label="邮箱" align="center" prop="email"
+      <el-table-column label="用户名" align="center" prop="nickname"
                        :show-overflow-tooltip="true"/>
       <el-table-column label="角色" align="center" prop="roles"
                        :show-overflow-tooltip="true">
@@ -88,7 +86,7 @@
         <template slot-scope="scope">
           <el-switch
             @change="statusChange(scope.row, $event)"
-            v-if="scope.row.username!=='admin'"
+            v-if="scope.row.id!=='1'"
             v-model="scope.row.status"
             active-value="1"
             inactive-value="2"
@@ -99,7 +97,7 @@
                        align="center"
                        width="140"
                        class-name="small-padding fixed-width">
-        <template slot-scope="scope" v-if="scope.row.username!=='admin'">
+        <template slot-scope="scope" v-if="scope.row.id!=='1'">
           <el-button
             size="mini"
             type="text"
@@ -173,13 +171,31 @@ export default {
       this.$refs.refUser.open(row);
     },
     tableSelectable(row) {
-      return row.username !== 'admin'
+      return row.id !== '1'
     },
     /** 重置密码按钮操作 */
     handleResetPwd(row) {
       const userIds = row.id || this.selections.map(item => item.id).join(',');
-      this.$modal.confirm('是否确认重置选中用户的密码？').then(() => {
-        return this.$http.patch(`/api/v1/user/${userIds}/actions/reset-password`);
+      let newPassword = '';
+      this.$prompt('请输入新密码', '重置密码', {
+        confirmButtonText: '下一步',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        inputPattern: /^.{6,100}$/,
+        inputErrorMessage: '密码长度需在6到100个字符之间'
+      }).then(({value}) => {
+        newPassword = value;
+        return this.$prompt('请再次输入新密码', '确认密码', {
+          confirmButtonText: '确 定',
+          cancelButtonText: '取消',
+          inputType: 'password',
+          inputValidator: confirmPassword => confirmPassword === newPassword || '两次输入的密码不一致'
+        });
+      }).then(({value}) => {
+        return this.$http.patch(`/api/v1/user/${userIds}/actions/reset-password`, {
+          newPassword,
+          confirmPassword: value
+        });
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("密码重置成功");

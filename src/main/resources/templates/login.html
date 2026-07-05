@@ -9,32 +9,67 @@
 <div class="login-wrapper">
     <div class="login-content">
         <div class="login-header">
-            <h1 class="login-header-h2">登录</h1>
+            <h1 class="login-header-h2" th:text="${needsSetup} ? '初始化管理员' : '登录'">登录</h1>
         </div>
         <div class="login-form-wrapper">
-            <form onsubmit="return handleSubmit()" method="POST"
+            <form th:if="${!needsSetup}" onsubmit="return handleLoginSubmit()" method="POST"
                   th:action="${#request.getQueryString() != null ? #request.getRequestURL() + '?' + #request.getQueryString() : #request.getRequestURL()}">
-                <div class="username-wrapper">
+                <div class="login-field-wrapper">
                     <input onfocus="inputFocus()"
                            class="username username-input-default"
                            type="text"
                            name="username"
                            id="username"
-                           value="admin"
-                           placeholder="请输入用户名">
+                           placeholder="请输入账号">
                 </div>
-                <div class="password-wrapper">
+                <div class="login-field-wrapper">
                     <input onfocus="inputFocus()"
                            class="password password-input-default"
                            type="password"
                            name="password"
                            id="password"
-                           value="123456"
                            placeholder="请输入密码">
                 </div>
                 <div class="submit-btn-wrapper">
                     <img class="btn-loading" src="./assets/images/loading.svg" alt="">
-                    <button type="submit" onclick="handleSubmit()" class="submit-btn">登录</button>
+                    <button type="submit" class="submit-btn">登录</button>
+                </div>
+                <div class="login-error-wrapper">
+                    <p class="login-error opacity1" th:text="${errorMsg}"></p>
+                </div>
+            </form>
+            <form th:if="${needsSetup}" class="setup-form" onsubmit="return handleSetupSubmit(event)">
+                <div class="login-field-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="nickname username-input-default"
+                           type="text"
+                           id="nickname"
+                           placeholder="请设置管理员用户名">
+                </div>
+                <div class="login-field-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="username username-input-default"
+                           type="text"
+                           id="username"
+                           placeholder="请设置管理员账号">
+                </div>
+                <div class="login-field-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="password password-input-default"
+                           type="password"
+                           id="password"
+                           placeholder="请设置管理员密码">
+                </div>
+                <div class="login-field-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="confirm-password password-input-default"
+                           type="password"
+                           id="confirmPassword"
+                           placeholder="请再次输入管理员密码">
+                </div>
+                <div class="submit-btn-wrapper">
+                    <img class="btn-loading" src="./assets/images/loading.svg" alt="">
+                    <button type="submit" class="submit-btn">创建管理员</button>
                 </div>
                 <div class="login-error-wrapper">
                     <p class="login-error opacity1" th:text="${errorMsg}"></p>
@@ -47,5 +82,4 @@
 <script type="application/javascript" src="./assets/js/login.js">
 </script>
 </html>
-
 

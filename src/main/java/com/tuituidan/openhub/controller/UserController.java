@@ -102,11 +102,13 @@ public class UserController {
      * resetPassword
      *
      * @param id id
+     * @param changePassword changePassword
      * @return Void
      */
     @PatchMapping("/{id}/actions/reset-password")
-    public ResponseEntity<Void> resetPassword(@PathVariable("id") String[] id) {
-        userService.resetPassword(id);
+    public ResponseEntity<Void> resetPassword(@PathVariable("id") String[] id,
+            @RequestBody ChangePassword changePassword) {
+        userService.resetPassword(id, changePassword);
         return ResponseEntity.noContent().build();
     }
 

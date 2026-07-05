@@ -26,7 +26,9 @@ public class UserDto {
 
     private String email;
 
-    private Boolean randomPassword;
+    private String password;
+
+    private String confirmPassword;
 
     private String[] roleIds;
 }

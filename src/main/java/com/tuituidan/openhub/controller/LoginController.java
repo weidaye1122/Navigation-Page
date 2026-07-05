@@ -1,6 +1,7 @@
 package com.tuituidan.openhub.controller;
 
 import com.tuituidan.openhub.bean.dto.LoginDto;
+import com.tuituidan.openhub.bean.dto.UserDto;
 import com.tuituidan.openhub.bean.entity.User;
 import com.tuituidan.openhub.config.LoginSuccessHandler;
 import com.tuituidan.openhub.consts.Consts;
@@ -11,6 +12,7 @@ import com.tuituidan.openhub.util.SecurityUtils;
 import java.io.IOException;
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,6 +44,28 @@ public class LoginController {
 
     @Resource
     private UserService userService;
+
+    /**
+     * setupRequired
+     *
+     * @return boolean
+     */
+    @GetMapping("/setup/required")
+    public ResponseEntity<Boolean> setupRequired() {
+        return ResponseEntity.ok(userService.needsSetup());
+    }
+
+    /**
+     * setupAdmin
+     *
+     * @param userDto userDto
+     * @return Void
+     */
+    @PostMapping("/setup/admin")
+    public ResponseEntity<Void> setupAdmin(@RequestBody UserDto userDto) {
+        userService.initializeAdmin(userDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
     /**
      * quickLogin

@@ -4,10 +4,3 @@ server:
 
 # 服务名，用于页面logo显示
 nav-name: 团队服务导航
-
-# 账号密码
-spring:
-  security:
-    user:
-      name: admin
-      password: 123456

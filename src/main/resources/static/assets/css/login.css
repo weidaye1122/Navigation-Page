@@ -188,11 +188,13 @@ button:-moz-focusring,
 }
 
 .username-wrapper,
-.password-wrapper {
+.password-wrapper,
+.login-field-wrapper {
     position: relative;
 }
 
-.password-wrapper {
+.password-wrapper,
+.login-field-wrapper + .login-field-wrapper {
     margin-top: 16px;
 }
 

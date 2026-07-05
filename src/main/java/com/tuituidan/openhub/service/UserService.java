@@ -8,6 +8,7 @@ import com.tuituidan.openhub.bean.entity.User;
 import com.tuituidan.openhub.bean.entity.UserStar;
 import com.tuituidan.openhub.bean.vo.UserVo;
 import com.tuituidan.openhub.consts.Consts;
+import com.tuituidan.openhub.repository.RoleRepository;
 import com.tuituidan.openhub.repository.RoleUserRepository;
 import com.tuituidan.openhub.repository.UserRepository;
 import com.tuituidan.openhub.repository.UserStarRepository;
@@ -24,23 +25,18 @@ import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
@@ -51,10 +47,13 @@ import org.springframework.util.Assert;
  * @date 2022/11/16
  */
 @Service
-public class UserService implements UserDetailsService, ApplicationRunner {
+public class UserService implements UserDetailsService {
 
     @Resource
     private UserRepository userRepository;
+
+    @Resource
+    private RoleRepository roleRepository;
 
     @Resource
     private RoleUserRepository roleUserRepository;
@@ -65,30 +64,40 @@ public class UserService implements UserDetailsService, ApplicationRunner {
     @Resource
     private CacheService cacheService;
 
-    @Value("${spring.security.user.name}")
-    private String defUsername;
-
-    @Value("${spring.security.user.password}")
-    private String defPassword;
-
-    @Resource
-    private EmailSettingService emailSettingService;
-
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        insertDefaultUser();
+    /**
+     * 是否需要初始化管理员.
+     *
+     * @return boolean
+     */
+    public boolean needsSetup() {
+        return userRepository.count() == 0;
     }
 
-    private void insertDefaultUser() {
-        if (userRepository.findById(Consts.DEFAULT_ID).isPresent()) {
+    /**
+     * 初始化第一个管理员.
+     *
+     * @param userDto userDto
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void initializeAdmin(UserDto userDto) {
+        Assert.isTrue(needsSetup(), "管理员已初始化，请直接登录");
+        validateUser(userDto);
+        initDefaultRole();
+        userRepository.save(new User().setId(Consts.DEFAULT_ID)
+                .setUsername(userDto.getUsername())
+                .setStatus(Consts.DEFAULT_ID)
+                .setNickname(userDto.getNickname())
+                .setAvatar("/assets/images/header.png")
+                .setPassword(encodePassword(userDto.getPassword(), userDto.getConfirmPassword())));
+        roleUserRepository.save(new RoleUser().setId(Consts.DEFAULT_ID)
+                .setRoleId(Consts.DEFAULT_ID).setUserId(Consts.DEFAULT_ID));
+    }
+
+    private void initDefaultRole() {
+        if (roleRepository.existsById(Consts.DEFAULT_ID)) {
             return;
         }
-        userRepository.save(new User().setId(Consts.DEFAULT_ID)
-                .setUsername(defUsername)
-                .setStatus(Consts.DEFAULT_ID)
-                .setNickname("管理员")
-                .setAvatar("/assets/images/header.png")
-                .setPassword(new BCryptPasswordEncoder().encode(defPassword)));
+        roleRepository.save(new Role().setId(Consts.DEFAULT_ID).setRoleName("管理员"));
     }
 
     /**
@@ -141,38 +150,43 @@ public class UserService implements UserDetailsService, ApplicationRunner {
      * @param id id
      * @param userDto userDto
      */
+    @Transactional(rollbackFor = Exception.class)
     public void save(String id, UserDto userDto) {
-        Assert.isTrue(!StringUtils.equalsIgnoreCase(userDto.getUsername(), "admin"), "默认管理员不可操作");
+        Assert.isTrue(!StringUtils.equals(Consts.DEFAULT_ID, id), "默认管理员不可操作");
+        validateUser(userDto);
         User user;
         User exitUser = userRepository.findByUsername(userDto.getUsername());
         if (StringUtils.isBlank(id)) {
-            Assert.isTrue(exitUser == null, "登录账号已存在");
+            Assert.isTrue(exitUser == null, "账号已存在");
             user = BeanExtUtils.convert(userDto, User::new);
             user.setId(StringExtUtils.getUuid());
-            user.setPassword(setPassword(userDto));
+            user.setPassword(encodePassword(userDto.getPassword(), userDto.getConfirmPassword()));
         } else {
             user = userRepository.findById(id).orElseThrow(NullPointerException::new);
-            Assert.isTrue(exitUser == null || StringUtils.equals(exitUser.getId(), id), "登录账号已存在");
-            BeanExtUtils.copyNotNullProperties(userDto, user);
+            Assert.isTrue(exitUser == null || StringUtils.equals(exitUser.getId(), id), "账号已存在");
+            BeanExtUtils.copyProperties(userDto, user, "nickname", "avatar", "username", "status", "email");
             roleUserRepository.deleteByUserId(user.getId());
         }
-        roleUserRepository.saveAll(Arrays.stream(userDto.getRoleIds())
-                .map(roleId -> new RoleUser().setId(StringExtUtils.getUuid()).setRoleId(roleId)
-                        .setUserId(user.getId())).collect(Collectors.toList()));
+        if (ArrayUtils.isNotEmpty(userDto.getRoleIds())) {
+            roleUserRepository.saveAll(Arrays.stream(userDto.getRoleIds())
+                    .map(roleId -> new RoleUser().setId(StringExtUtils.getUuid()).setRoleId(roleId)
+                            .setUserId(user.getId())).collect(Collectors.toList()));
+        }
         userRepository.save(user);
     }
 
-    private String setPassword(UserDto userDto) {
-        if (BooleanUtils.isTrue(userDto.getRandomPassword())) {
-            Assert.hasText(userDto.getEmail(), "要使用随机密码请填写邮箱");
-            SimpleMailMessage message = new SimpleMailMessage();
-            String password = RandomStringUtils.randomAlphanumeric(12);
-            message.setText(StringExtUtils.format("您的初始密码为：{}", password));
-            message.setTo(userDto.getEmail());
-            emailSettingService.send(message);
-            return new BCryptPasswordEncoder().encode(password);
-        }
-        return new BCryptPasswordEncoder().encode(defPassword);
+    private void validateUser(UserDto userDto) {
+        Assert.notNull(userDto, "用户信息不能为空");
+        Assert.hasText(userDto.getNickname(), "用户名不能为空");
+        Assert.hasText(userDto.getUsername(), "账号不能为空");
+    }
+
+    private String encodePassword(String password, String confirmPassword) {
+        Assert.hasText(password, "密码不能为空");
+        Assert.isTrue(StringUtils.length(password) >= 6 && StringUtils.length(password) <= 100,
+                "密码长度需在6到100个字符之间");
+        Assert.isTrue(StringUtils.equals(password, confirmPassword), "两次输入的密码不一致");
+        return new BCryptPasswordEncoder().encode(password);
     }
 
     /**
@@ -180,12 +194,10 @@ public class UserService implements UserDetailsService, ApplicationRunner {
      *
      * @param id id
      */
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String[] id) {
         List<String> ids = Arrays.asList(id);
-        Set<String> usernames = userRepository.findAllById(ids).stream()
-                .map(User::getUsername)
-                .collect(Collectors.toSet());
-        Assert.isTrue(!CollectionUtils.containsAny(usernames, "admin"), "默认管理员不可操作");
+        Assert.isTrue(!ids.contains(Consts.DEFAULT_ID), "默认管理员不可操作");
         userRepository.deleteAllById(Arrays.asList(id));
         roleUserRepository.deleteByUserIdIn(ids);
     }
@@ -196,13 +208,15 @@ public class UserService implements UserDetailsService, ApplicationRunner {
      * @param userId userId
      * @param changePassword changePassword
      */
+    @Transactional(rollbackFor = Exception.class)
     public void changePassword(String userId, ChangePassword changePassword) {
+        Assert.notNull(changePassword, "密码信息不能为空");
         User user = userRepository.findById(userId).orElseThrow(NullPointerException::new);
         Assert.notNull(user, "用户获取失败");
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Assert.isTrue(passwordEncoder.matches(changePassword.getOldPassword(),
                 user.getPassword()), "原密码不匹配");
-        user.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
+        user.setPassword(encodePassword(changePassword.getNewPassword(), changePassword.getConfirmPassword()));
         userRepository.save(user);
     }
 
@@ -211,9 +225,13 @@ public class UserService implements UserDetailsService, ApplicationRunner {
      *
      * @param ids ids
      */
-    public void resetPassword(String[] ids) {
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(String[] ids, ChangePassword changePassword) {
+        Assert.notNull(changePassword, "密码信息不能为空");
+        Assert.isTrue(!Arrays.asList(ids).contains(Consts.DEFAULT_ID), "默认管理员不可操作");
+        String password = encodePassword(changePassword.getNewPassword(), changePassword.getConfirmPassword());
         List<User> users = userRepository.findAllById(Arrays.asList(ids));
-        users.forEach(user -> user.setPassword(new BCryptPasswordEncoder().encode(defPassword)));
+        users.forEach(user -> user.setPassword(password));
         userRepository.saveAll(users);
     }
 
@@ -223,7 +241,9 @@ public class UserService implements UserDetailsService, ApplicationRunner {
      * @param id id
      * @param status status
      */
+    @Transactional(rollbackFor = Exception.class)
     public void changeStatus(String id, String status) {
+        Assert.isTrue(!StringUtils.equals(Consts.DEFAULT_ID, id), "默认管理员不可操作");
         User user = userRepository.findById(id).orElseThrow(NullPointerException::new).setStatus(status);
         userRepository.save(user);
     }
