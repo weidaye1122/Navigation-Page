@@ -4,9 +4,11 @@
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
         <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
+        <span class="sidebar-version" v-text="versionLabel"></span>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
         <h1 class="sidebar-title" :style="{ color: variables.logoTitleColor }">{{ title }} </h1>
+        <span class="sidebar-version" v-text="versionLabel"></span>
       </router-link>
     </transition>
   </div>
@@ -14,6 +16,7 @@
 
 <script>
 import variables from '@/assets/styles/variables.scss'
+import packageInfo from '../../../../package.json'
 
 export default {
   name: 'SidebarLogo',
@@ -32,6 +35,9 @@ export default {
     },
     title() {
       return this.$store.state.settings.title;
+    },
+    versionLabel() {
+      return `V ${packageInfo.version}`;
     }
   },
 }
@@ -50,8 +56,8 @@ export default {
 .sidebar-logo-container {
   position: relative;
   width: 100%;
-  height: 88px;
-  padding: 20px 14px 10px;
+  height: 100px;
+  padding: 18px 14px 10px;
   line-height: 1;
   background: transparent !important;
   text-align: center;
@@ -59,9 +65,11 @@ export default {
 
   & .sidebar-logo-link {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 56px;
+    gap: 7px;
+    height: 72px;
     width: 100%;
     padding: 0;
     color: inherit;
@@ -87,6 +95,23 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    & .sidebar-version {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      height: 22px;
+      padding: 0 10px;
+      color: rgba(79, 124, 255, .86);
+      border: 1px solid rgba(79, 124, 255, .18);
+      border-radius: 999px;
+      background: rgba(79, 124, 255, .08);
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
   }
 
   &.collapse {
@@ -98,6 +123,10 @@ export default {
     }
 
     .sidebar-title {
+      display: none;
+    }
+
+    .sidebar-version {
       display: none;
     }
   }

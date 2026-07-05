@@ -206,6 +206,10 @@ body {
     height: 100%;
   }
 
+  .home-shell {
+    max-width: none;
+  }
+
   .category-children,
   .large-layout-container {
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -628,6 +632,15 @@ body {
   .category-children,
   .large-layout-container {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2000px) {
+  #app .home-wrapper:not(.mobile):not(.is-desktop-portrait) {
+    .category-children,
+    .large-layout-container {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
   }
 }
 
