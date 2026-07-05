@@ -5,7 +5,7 @@
 </template>
 
 <script>
-const APP_ICON_PATH = '/app-icon.png';
+const APPLE_TOUCH_ICON_PATH = '/apple-touch-icon.png';
 const FAVICON_PATH = '/favicon.png';
 
 export default {
@@ -26,20 +26,24 @@ export default {
     loadSettings() {
       this.$store.dispatch('settings/loadSettings').then(() => {
         this.setHeadLink('icon', FAVICON_PATH);
-        this.setHeadLink('shortcut icon', FAVICON_PATH);
-        this.setHeadLink('apple-touch-icon', APP_ICON_PATH);
-        this.setHeadLink('apple-touch-icon-precomposed', APP_ICON_PATH);
+        this.setHeadLink('shortcut icon', '/favicon.ico');
+        this.setHeadLink('apple-touch-icon', APPLE_TOUCH_ICON_PATH, '180x180');
+        this.setHeadLink('apple-touch-icon-precomposed', APPLE_TOUCH_ICON_PATH, '180x180');
         this.setMeta('apple-mobile-web-app-title', this.$store.state.settings.title);
       })
     },
-    setHeadLink(rel, href) {
+    setHeadLink(rel, href, sizes = '') {
       let link = document.head.querySelector(`link[rel="${rel}"]`);
       if (!link) {
         link = document.createElement('link');
         link.rel = rel;
         document.head.appendChild(link);
       }
-      link.removeAttribute('sizes');
+      if (sizes) {
+        link.setAttribute('sizes', sizes);
+      } else {
+        link.removeAttribute('sizes');
+      }
       link.type = href.endsWith('.png') ? 'image/png' : '';
       link.href = href;
     },
