@@ -1,6 +1,8 @@
 import http from '@/plugins/http';
 import {buildStarCard, saveStarCard, loadCardDynamicContent} from "@/utils";
 
+let homeCardsRequestSerial = 0;
+
 const state = {
   menus: [],
   datas: [],
@@ -48,7 +50,12 @@ const actions = {
   },
   // 加载
   loadHomeCards({commit}, keywords) {
-    return http.get(`/api/v1/card/tree?keywords=${keywords}`).then(res => {
+    const requestSerial = ++homeCardsRequestSerial;
+    const searchKeywords = keywords || '';
+    return http.get(`/api/v1/card/tree?keywords=${encodeURIComponent(searchKeywords)}`).then(res => {
+      if (requestSerial !== homeCardsRequestSerial) {
+        return res;
+      }
       commit('CHANGE_DATA', res);
       commit('LOAD_STAR_CARD');
       loadCardDynamicContent(state.datas);

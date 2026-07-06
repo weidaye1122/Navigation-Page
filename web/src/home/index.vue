@@ -199,7 +199,14 @@ body {
   }
 
   .fixed-header {
-    display: none;
+    position: absolute;
+    top: 16px;
+    left: 48px;
+    right: 34px;
+    z-index: 12;
+    display: flex;
+    width: auto;
+    pointer-events: none;
   }
 
   .app-main {
@@ -208,6 +215,13 @@ body {
 
   .home-shell {
     max-width: none;
+    padding-top: 100px;
+  }
+
+  .fixed-header .navbar {
+    width: 100%;
+    margin: 0;
+    pointer-events: auto;
   }
 
   .category-children,
@@ -418,21 +432,34 @@ body {
   }
 
   .fixed-header {
-    display: none;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 12;
+    display: flex;
+    width: auto;
+    pointer-events: none;
   }
 
   .app-main {
     height: 100%;
   }
 
+  .fixed-header .navbar {
+    width: 100%;
+    margin: 0;
+    pointer-events: auto;
+  }
+
   .home-shell {
     width: 100%;
     max-width: none;
-    padding: 10px 8px 36px;
+    padding: 74px 8px 36px;
   }
 
   .home-shell.is-focus-mode {
-    padding-top: 82px;
+    padding-top: 74px;
     padding-bottom: 520px;
   }
 
@@ -671,6 +698,10 @@ body {
     width: 100%;
     max-width: none;
     padding: 20px 28px 56px 36px;
+  }
+
+  .home-shell:not(.is-focus-mode) {
+    padding-top: 104px;
   }
 
   .home-shell.is-focus-mode {
