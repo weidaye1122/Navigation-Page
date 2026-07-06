@@ -150,7 +150,7 @@ export default {
 
 .home-shell.is-focus-mode {
   padding-top: 122px;
-  padding-bottom: 444px;
+  padding-bottom: 960px;
 }
 
 .home-shell.is-repainting-home {
