@@ -59,6 +59,10 @@ export const routeList = [
         component: () => import('@/admin/user/index.vue'),
       },
       {
+        path: 'access-statistics',
+        component: () => import('@/admin/access-statistics/index.vue'),
+      },
+      {
         path: 'setting',
         component: () => import('@/admin/setting/index.vue'),
       },

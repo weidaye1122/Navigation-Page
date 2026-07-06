@@ -66,6 +66,11 @@ export default {
           meta: {title: '用户管理'}
         },
         {
+          path: '/admin/access-statistics',
+          name: 'access-statistics',
+          meta: {title: '访问统计'}
+        },
+        {
           path: '/admin/setting',
           name: 'setting',
           meta: {title: '系统设置'}

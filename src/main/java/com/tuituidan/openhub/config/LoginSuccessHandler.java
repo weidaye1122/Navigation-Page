@@ -5,6 +5,7 @@ import com.tuituidan.openhub.bean.entity.User;
 import com.tuituidan.openhub.bean.entity.UserStar;
 import com.tuituidan.openhub.repository.RoleUserRepository;
 import com.tuituidan.openhub.repository.UserStarRepository;
+import com.tuituidan.openhub.service.AccessStatService;
 import com.tuituidan.openhub.util.SecurityUtils;
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * LoginSuccessHandler.
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component;
  * @date 2022/10/26
  */
 @Component
+@Slf4j
 public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Resource
@@ -35,10 +38,14 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Resource
     private RoleUserRepository roleUserRepository;
 
+    @Resource
+    private AccessStatService accessStatService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
             HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
+        recordLoginSuccess(request);
         User user = (User) authentication.getPrincipal();
         user.setPassword(null);
         user.setStarCardIds(userStarRepository.findByUserId(user.getId()).stream()
@@ -54,6 +61,14 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                 AuthorityUtils.createAuthorityList("admin"));
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
         super.onAuthenticationSuccess(request, response, newAuthentication);
+    }
+
+    private void recordLoginSuccess(HttpServletRequest request) {
+        try {
+            accessStatService.recordLogin(true, request);
+        } catch (Exception ex) {
+            log.warn("记录登录成功统计失败", ex);
+        }
     }
 
 }

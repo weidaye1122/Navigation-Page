@@ -5,6 +5,7 @@ import com.tuituidan.openhub.bean.dto.UserDto;
 import com.tuituidan.openhub.bean.entity.User;
 import com.tuituidan.openhub.config.LoginSuccessHandler;
 import com.tuituidan.openhub.consts.Consts;
+import com.tuituidan.openhub.service.AccessStatService;
 import com.tuituidan.openhub.service.UserService;
 import com.tuituidan.openhub.util.RequestUtils;
 import com.tuituidan.openhub.util.ResponseUtils;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +46,9 @@ public class LoginController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private AccessStatService accessStatService;
 
     /**
      * setupRequired
@@ -80,7 +85,13 @@ public class LoginController {
         }
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
-        Authentication authenticate = authenticationManager.authenticate(token);
+        Authentication authenticate;
+        try {
+            authenticate = authenticationManager.authenticate(token);
+        } catch (AuthenticationException ex) {
+            recordLoginFailure();
+            throw ex;
+        }
         Assert.notNull(authenticate, "登录失败");
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         if (loginDto.getCardIds() != null) {
@@ -90,6 +101,14 @@ public class LoginController {
         loginSuccessHandler.onAuthenticationSuccess(RequestUtils.getRequest(), ResponseUtils.getHttpResponse(),
                 authenticate);
         return ResponseEntity.ok(SecurityUtils.getUserInfo());
+    }
+
+    private void recordLoginFailure() {
+        try {
+            accessStatService.recordLogin(false, RequestUtils.getRequest());
+        } catch (Exception ignored) {
+            // 登录失败统计不能影响登录错误提示
+        }
     }
 
     /**

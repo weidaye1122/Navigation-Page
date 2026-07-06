@@ -17,6 +17,17 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @UtilityClass
 public class RequestUtils {
 
+    private static final String UNKNOWN = "unknown";
+
+    private static final String[] CLIENT_IP_HEADERS = {
+            "X-Forwarded-For",
+            "X-Real-IP",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_X_FORWARDED_FOR"
+    };
+
     /**
      * 得到request
      *
@@ -27,6 +38,34 @@ public class RequestUtils {
         return Optional.ofNullable(attrs)
                 .map(ServletRequestAttributes::getRequest)
                 .orElseThrow(() -> new UnsupportedOperationException("请在web上下文中获取HttpServletRequest"));
+    }
+
+    /**
+     * getClientIp
+     *
+     * @return String
+     */
+    public static String getClientIp() {
+        return getClientIp(getRequest());
+    }
+
+    /**
+     * getClientIp
+     *
+     * @param request request
+     * @return String
+     */
+    public static String getClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return UNKNOWN;
+        }
+        for (String header : CLIENT_IP_HEADERS) {
+            String ip = request.getHeader(header);
+            if (StringUtils.isNotBlank(ip) && !UNKNOWN.equalsIgnoreCase(ip)) {
+                return StringUtils.substringBefore(ip, ",").trim();
+            }
+        }
+        return request.getRemoteAddr();
     }
 
     private static final String[] IE_AGENT = {"MSIE", "Trident", "Edge"};

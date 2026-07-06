@@ -41,7 +41,12 @@ service.interceptors.response.use(res => {
       return Promise.reject(err)
     }
     if (err.response && err.response.status === 401) {
-      if (!isRelogin.show) {
+      const data = err.response.data;
+      const message = typeof data === 'string' || data instanceof String ? data : '';
+      if (message) {
+        Message.error(message);
+      }
+      if (!message && !isRelogin.show) {
         isRelogin.show = true;
         const constructor = Vue.extend(login);
         const instance = new constructor();
@@ -54,7 +59,7 @@ service.interceptors.response.use(res => {
       location.href = '/';
       return Promise.reject(err)
     }
-    if(err.response.data instanceof String){
+    if (err.response && (typeof err.response.data === 'string' || err.response.data instanceof String)) {
       Message.error(err.response.data);
     }
     return Promise.reject(err)

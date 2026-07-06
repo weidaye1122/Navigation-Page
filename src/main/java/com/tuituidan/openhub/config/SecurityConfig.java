@@ -1,12 +1,16 @@
 package com.tuituidan.openhub.config;
 
+import com.tuituidan.openhub.service.AccessStatService;
 import com.tuituidan.openhub.service.UserService;
+import java.io.IOException;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,6 +19,7 @@ import org.springframework.security.config.annotation.web.configurers.LogoutConf
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
 /**
@@ -37,6 +42,9 @@ public class SecurityConfig {
 
     @Resource
     private LoginSuccessHandler loginSuccessHandler;
+
+    @Resource
+    private AccessStatService accessStatService;
 
     /**
      * filterChain
@@ -69,7 +77,8 @@ public class SecurityConfig {
     private void setLogin(FormLoginConfigurer<HttpSecurity> login) {
         loginSuccessHandler.setTargetUrlParameter("returnUrl");
         login.loginPage("/login").loginProcessingUrl("/login")
-                .successHandler(loginSuccessHandler);
+                .successHandler(loginSuccessHandler)
+                .failureHandler((request, response, exception) -> handleLoginFailure(request, response));
     }
 
     private void setLogout(LogoutConfigurer<HttpSecurity> logout) {
@@ -99,6 +108,27 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    private void handleLoginFailure(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        recordLoginFailure(request);
+        if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("用户名或密码错误");
+            return;
+        }
+        request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION,
+                new BadCredentialsException("用户名或密码错误"));
+        response.sendRedirect(request.getContextPath() + "/login?error");
+    }
+
+    private void recordLoginFailure(HttpServletRequest request) {
+        try {
+            accessStatService.recordLogin(false, request);
+        } catch (Exception ex) {
+            log.warn("记录登录失败统计失败", ex);
+        }
     }
 
 }

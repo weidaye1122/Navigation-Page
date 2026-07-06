@@ -13,6 +13,10 @@
         </div>
         <app-main />
       </div>
+      <div class="home-access-stats">
+        <span>今日访问 {{ todayAccessStats.visitCount || 0 }}</span>
+        <span>今日登录 {{ todayAccessStats.loginCount || 0 }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -139,6 +143,30 @@
   z-index: 9;
   width: 100%;
   transition: width 0.28s;
+}
+
+.home-access-stats {
+  position: absolute;
+  left: 288px;
+  bottom: 20px;
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 14px;
+  color: rgba(255, 255, 255, .84);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 17px;
+  background: rgba(8, 15, 15, .32);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, .2),
+    inset 0 1px 0 rgba(255, 255, 255, .18);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  font-size: 12px;
+  font-weight: 800;
+  pointer-events: none;
 }
 
 //.hideSidebar .fixed-header {
@@ -654,6 +682,15 @@ body {
   .sidebar-user-name {
     max-width: 78px;
     font-size: 11px;
+  }
+
+  .home-access-stats {
+    left: var(--mobile-sidebar-offset);
+    bottom: 12px;
+    height: 28px;
+    padding: 0 8px;
+    gap: 6px;
+    font-size: 10px;
   }
 }
 

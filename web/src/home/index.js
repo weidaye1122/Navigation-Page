@@ -33,6 +33,11 @@ export default {
       tabletFill: false,
       desktopDesignWidth: DESKTOP_DESIGN_WIDTH,
       desktopDesignHeight: DESKTOP_DESIGN_HEIGHT,
+      todayAccessStats: {
+        visitCount: 0,
+        loginCount: 0,
+      },
+      accessStatsTimer: null,
     };
   },
   computed: {
@@ -73,6 +78,8 @@ export default {
       this.$store.dispatch('settings/loadVersion');
     }
     this.$store.dispatch('home/loadHomeCards', '');
+    this.recordHomeVisit();
+    this.scheduleAccessStatsRefresh();
     this.updateDesktopScale();
     window.addEventListener('resize', this.updateDesktopScale);
     if (window.visualViewport) {
@@ -84,8 +91,34 @@ export default {
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', this.updateDesktopScale);
     }
+    if (this.accessStatsTimer) {
+      clearTimeout(this.accessStatsTimer);
+    }
   },
   methods: {
+    recordHomeVisit() {
+      this.$http.post('/api/v1/access-statistics/visit').then(res => {
+        this.todayAccessStats = res || this.todayAccessStats;
+      }).catch(() => {});
+    },
+    refreshHomeAccessStats() {
+      this.$http.get('/api/v1/access-statistics/summary').then(res => {
+        this.todayAccessStats = res || this.todayAccessStats;
+      }).catch(() => {});
+    },
+    scheduleAccessStatsRefresh() {
+      if (this.accessStatsTimer) {
+        clearTimeout(this.accessStatsTimer);
+      }
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 5, 0);
+      const delay = Math.max(1000, next.getTime() - now.getTime());
+      this.accessStatsTimer = setTimeout(() => {
+        this.refreshHomeAccessStats();
+        this.scheduleAccessStatsRefresh();
+      }, delay);
+    },
     updateDesktopScale() {
       const viewport = window.visualViewport;
       const width = Math.round((viewport && viewport.width) || window.innerWidth || document.documentElement.clientWidth || DESKTOP_DESIGN_WIDTH);
