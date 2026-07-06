@@ -56,20 +56,20 @@ export default {
 .sidebar-logo-container {
   position: relative;
   width: 100%;
-  height: 100px;
-  padding: 18px 14px 10px;
+  height: 116px;
+  padding: 20px 14px 12px;
   line-height: 1;
   background: transparent !important;
   text-align: center;
   overflow: visible;
 
   & .sidebar-logo-link {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    height: 72px;
+    gap: 18px;
+    height: 84px;
     width: 100%;
     padding: 0;
     color: inherit;
@@ -103,6 +103,7 @@ export default {
       min-width: 72px;
       height: 22px;
       padding: 0 10px;
+      margin-top: 0;
       color: rgba(79, 124, 255, .86);
       border: 1px solid rgba(79, 124, 255, .18);
       border-radius: 999px;

@@ -126,7 +126,7 @@ export default {
   }
 
   .sidebar-container .el-scrollbar {
-    height: calc(100% - 164px);
+    height: calc(100% - 180px);
   }
 
   .sidebar-container .el-menu {

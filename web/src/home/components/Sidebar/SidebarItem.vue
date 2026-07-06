@@ -80,12 +80,7 @@ export default {
 
           const rightTarget = titleText || title;
           const leftTarget = triggerText || trigger;
-          const desktopScale = this.getHomeDesktopScale();
-          const maxScrollTop = scroller.scrollHeight - scroller.clientHeight;
-          const nextScrollTop = Math.max(0, Math.min(
-            maxScrollTop,
-            scroller.scrollTop + (rightTarget.getBoundingClientRect().top - leftTarget.getBoundingClientRect().top) / desktopScale
-          ));
+          const nextScrollTop = this.getAlignedHomeScrollTop(scroller, rightTarget, leftTarget);
 
           this.animateHomeScroll(scroller, nextScrollTop, id);
         };
@@ -101,14 +96,37 @@ export default {
       window.__teamNavHomeScrollToken = (window.__teamNavHomeScrollToken || 0) + 1;
       return window.__teamNavHomeScrollToken;
     },
-    getHomeDesktopScale() {
-      const viewport = document.querySelector('.home-scale-viewport');
-      const wrapper = document.querySelector('.home-wrapper');
-      if (!viewport || !viewport.classList.contains('is-desktop-scale') || (wrapper && wrapper.classList.contains('mobile'))) {
+    getHomeScrollScale(scroller) {
+      const rect = scroller && scroller.getBoundingClientRect();
+      if (!rect || !rect.height || !scroller.offsetHeight) {
         return 1;
       }
-      const scale = viewport && Number(getComputedStyle(viewport).getPropertyValue('--desktop-scale'));
+      const scale = rect.height / scroller.offsetHeight;
       return scale > 0 ? scale : 1;
+    },
+    getAlignedHomeScrollTop(scroller, rightTarget, leftTarget) {
+      const scrollScale = this.getHomeScrollScale(scroller);
+      const maxScrollTop = scroller.scrollHeight - scroller.clientHeight;
+      const nextScrollTop = scroller.scrollTop + (rightTarget.getBoundingClientRect().top - leftTarget.getBoundingClientRect().top) / scrollScale;
+      return Math.max(0, Math.min(maxScrollTop, nextScrollTop));
+    },
+    settleHomeScroll(scroller, id) {
+      requestAnimationFrame(() => {
+        if (this.$store.state.home.activeCategoryId !== id) {
+          return;
+        }
+        const anchor = document.getElementById(id);
+        const category = anchor && anchor.closest('.category-main');
+        const title = category && category.querySelector('.category-title');
+        const titleText = category && category.querySelector('.category-title-text');
+        const trigger = Array.from(document.querySelectorAll('.sidebar-container .el-menu-item'))
+          .find(item => item.getAttribute('data-menu-id') === id);
+        const triggerText = trigger && trigger.querySelector('.sidebar-menu-title');
+        if (!title || !scroller || !trigger) {
+          return;
+        }
+        scroller.scrollTop = this.getAlignedHomeScrollTop(scroller, titleText || title, triggerText || trigger);
+      });
     },
     animateHomeScroll(scroller, targetTop, id) {
       const token = this.cancelHomeScrollAnimation();
@@ -128,6 +146,8 @@ export default {
           return;
         }
         window.__teamNavHomeScrollFrame = null;
+        scroller.scrollTop = targetTop;
+        this.settleHomeScroll(scroller, id);
       };
       window.__teamNavHomeScrollFrame = requestAnimationFrame(step);
     },
