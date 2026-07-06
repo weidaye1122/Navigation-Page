@@ -8,6 +8,7 @@ const state = {
   datas: [],
   openIds: [],
   activeCategoryId: '',
+  searchKeywords: '',
 }
 const mutations = {
   CHANGE_DATA: (state, res) => {
@@ -17,6 +18,9 @@ const mutations = {
   },
   SET_ACTIVE_CATEGORY: (state, id) => {
     state.activeCategoryId = id || '';
+  },
+  SET_SEARCH_KEYWORDS: (state, keywords) => {
+    state.searchKeywords = keywords || '';
   },
   LOAD_STAR_CARD: state => {
     const starCategory = buildStarCard(state.datas);
@@ -32,6 +36,10 @@ const mutations = {
 }
 
 const actions = {
+  clearSearchAndLoadHomeCards({commit, dispatch}) {
+    commit('SET_SEARCH_KEYWORDS', '');
+    return dispatch('loadHomeCards', '');
+  },
   setStarCard({commit}, card) {
     const star = card.star;
     if (star) {

@@ -42,11 +42,20 @@ export default {
   methods: {
     restoreHomeView() {
       this.cancelHomeScrollAnimation();
-      this.$store.commit('home/SET_ACTIVE_CATEGORY', '');
-      this.$nextTick(() => {
-        this.resetHomeScroll();
-        requestAnimationFrame(this.resetHomeScroll);
-      });
+      const restore = () => {
+        this.$store.commit('home/SET_ACTIVE_CATEGORY', '');
+        this.$nextTick(() => {
+          this.resetHomeScroll();
+          requestAnimationFrame(this.resetHomeScroll);
+        });
+      };
+      this.clearSearchBeforeSidebarAction().then(restore).catch(restore);
+    },
+    clearSearchBeforeSidebarAction() {
+      if (!this.$store.state.home.searchKeywords) {
+        return Promise.resolve();
+      }
+      return this.$store.dispatch('home/clearSearchAndLoadHomeCards');
     },
     resetHomeScroll() {
       const scroller = document.querySelector('.app-main');

@@ -2,12 +2,15 @@
   <div class="navbar">
     <div class="search-panel">
       <el-input
+        ref="searchInput"
         v-model="searchKeywords"
         class="home-search-input"
         autocomplete="off"
         clearable
         name="team-nav-home-search"
         placeholder="搜索"
+        @clear="exitSearch(true)"
+        @keydown.native.esc.stop.prevent="exitSearch"
         @input="searchInputHandler">
         <i slot="prefix" class="el-icon-search el-input__icon"></i>
       </el-input>
@@ -35,7 +38,6 @@ export default {
     return {
       currentDateTime: '',
       clockTimer: null,
-      searchKeywords: '',
       searchTimer: null,
     };
   },
@@ -45,6 +47,22 @@ export default {
       'device',
       'showDoc'
     ]),
+    searchKeywords: {
+      get() {
+        return this.$store.state.home.searchKeywords;
+      },
+      set(value) {
+        this.$store.commit('home/SET_SEARCH_KEYWORDS', value);
+      },
+    },
+  },
+  watch: {
+    searchKeywords(nextKeywords, prevKeywords) {
+      if (!nextKeywords && prevKeywords && this.searchTimer) {
+        clearTimeout(this.searchTimer);
+        this.searchTimer = null;
+      }
+    },
   },
   mounted() {
     this.updateCurrentDateTime();
@@ -94,6 +112,25 @@ export default {
           }
         });
       }).catch(() => {});
+    },
+    exitSearch(forceReload) {
+      if (this.searchTimer) {
+        clearTimeout(this.searchTimer);
+        this.searchTimer = null;
+      }
+      const hadKeywords = !!this.searchKeywords;
+      if (hadKeywords) {
+        this.searchKeywords = '';
+      }
+      if (hadKeywords || forceReload) {
+        this.searchHomeCards();
+      }
+      this.blurSearchInput();
+    },
+    blurSearchInput() {
+      if (this.$refs.searchInput) {
+        this.$refs.searchInput.blur();
+      }
     },
     cancelHomeScrollAnimation() {
       if (window.__teamNavHomeScrollFrame) {

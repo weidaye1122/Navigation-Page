@@ -59,6 +59,19 @@ export default {
   methods: {
     menuItemClickHandler(id) {
       this.cancelHomeScrollAnimation();
+      this.clearSearchBeforeSidebarAction().then(() => {
+        this.selectCategory(id);
+      }).catch(() => {
+        this.selectCategory(id);
+      });
+    },
+    clearSearchBeforeSidebarAction() {
+      if (!this.$store.state.home.searchKeywords) {
+        return Promise.resolve();
+      }
+      return this.$store.dispatch('home/clearSearchAndLoadHomeCards');
+    },
+    selectCategory(id) {
       this.$store.commit('home/SET_ACTIVE_CATEGORY', id);
       this.$nextTick(() => {
         const scrollToTitle = () => {
