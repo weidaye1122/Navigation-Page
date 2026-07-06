@@ -13,7 +13,8 @@
         </div>
         <div class="login-form-wrapper">
             <form th:if="${!needsSetup}" onsubmit="return handleLoginSubmit()" method="POST"
-                  th:action="${#request.getQueryString() != null ? #request.getRequestURL() + '?' + #request.getQueryString() : #request.getRequestURL()}">
+                  action="./login"
+                  th:action="${#request.getQueryString() != null ? './login?' + #request.getQueryString() : './login'}">
                 <div class="login-field-wrapper">
                     <input onfocus="inputFocus()"
                            class="username username-input-default"
@@ -82,4 +83,3 @@
 <script type="application/javascript" src="./assets/js/login.js">
 </script>
 </html>
-

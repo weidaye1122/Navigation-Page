@@ -2,6 +2,10 @@
   <div class="has-logo"
        :style="{ backgroundColor: settings.sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground }">
     <logo :collapse="isCollapse"/>
+    <div class="sidebar-access-stats">
+      <span>今日访问 {{ todayAccessStats.visitCount || 0 }}</span>
+      <span>今日登录 {{ todayAccessStats.loginCount || 0 }}</span>
+    </div>
     <el-scrollbar :class="settings.sideTheme" wrap-class="scrollbar-wrapper">
       <el-menu
         :default-active="activeMenu"
@@ -60,6 +64,15 @@ export default {
     SidebarItem,
     Logo,
     'change-password': () => import('@/home/components/change-password'),
+  },
+  props: {
+    todayAccessStats: {
+      type: Object,
+      default: () => ({
+        visitCount: 0,
+        loginCount: 0
+      })
+    }
   },
   computed: {
     ...mapState(["settings"]),
@@ -136,6 +149,21 @@ export default {
   right: 18px;
   bottom: 18px;
   z-index: 2;
+}
+
+.sidebar-access-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 32px;
+  padding: 2px 14px 0;
+  color: rgba(236, 244, 241, .62);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .sidebar-user-dropdown {

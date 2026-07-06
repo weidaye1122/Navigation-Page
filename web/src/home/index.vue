@@ -6,16 +6,12 @@
        }"
        :style="desktopScaleStyle">
     <div :class="classObj" class="app-wrapper home-wrapper" :style="{'--current-color': '#409EFF'}">
-      <sidebar class="sidebar-container"/>
+      <sidebar class="sidebar-container" :today-access-stats="todayAccessStats"/>
       <div :class="{sidebarHide:sidebar.hide}" class="main-container">
         <div class="fixed-header">
           <navbar/>
         </div>
         <app-main />
-      </div>
-      <div class="home-access-stats">
-        <span>今日访问 {{ todayAccessStats.visitCount || 0 }}</span>
-        <span>今日登录 {{ todayAccessStats.loginCount || 0 }}</span>
       </div>
     </div>
   </div>
@@ -145,30 +141,6 @@
   transition: width 0.28s;
 }
 
-.home-access-stats {
-  position: absolute;
-  left: 288px;
-  bottom: 20px;
-  z-index: 12;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  height: 34px;
-  padding: 0 14px;
-  color: rgba(255, 255, 255, .84);
-  border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: 17px;
-  background: rgba(8, 15, 15, .32);
-  box-shadow:
-    0 14px 36px rgba(0, 0, 0, .2),
-    inset 0 1px 0 rgba(255, 255, 255, .18);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  backdrop-filter: blur(24px) saturate(1.4);
-  font-size: 12px;
-  font-weight: 800;
-  pointer-events: none;
-}
-
 //.hideSidebar .fixed-header {
 //  width: calc(100% - 54px);
 //}
@@ -246,6 +218,10 @@ body {
     padding-top: 100px;
   }
 
+  .home-shell.is-focus-mode {
+    padding-top: 154px;
+  }
+
   .fixed-header .navbar {
     width: 100%;
     margin: 0;
@@ -294,7 +270,7 @@ body {
   }
 
   .sidebar-container.has-logo .el-scrollbar {
-    height: calc(100% - 164px);
+    height: calc(100% - 196px);
   }
 
   .sidebar-container .el-menu {
@@ -487,7 +463,7 @@ body {
   }
 
   .home-shell.is-focus-mode {
-    padding-top: 74px;
+    padding-top: 102px;
     padding-bottom: 520px;
   }
 
@@ -601,8 +577,17 @@ body {
     line-height: 1.1;
   }
 
+  .sidebar-container .sidebar-access-stats {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 28px;
+    padding: 0 4px;
+    font-size: 8.5px;
+    line-height: 1.1;
+  }
+
   .sidebar-container.has-logo .el-scrollbar {
-    height: calc(100% - 96px);
+    height: calc(100% - 124px);
   }
 
   .sidebar-container .el-menu {
@@ -684,14 +669,6 @@ body {
     font-size: 11px;
   }
 
-  .home-access-stats {
-    left: var(--mobile-sidebar-offset);
-    bottom: 12px;
-    height: 28px;
-    padding: 0 8px;
-    gap: 6px;
-    font-size: 10px;
-  }
 }
 
 #app .home-wrapper.is-tablet-fill:not(.mobile):not(.is-desktop-portrait) {
@@ -742,7 +719,7 @@ body {
   }
 
   .home-shell.is-focus-mode {
-    padding-top: 122px;
+    padding-top: 176px;
     padding-bottom: 1120px;
   }
 
