@@ -5,8 +5,6 @@ import com.tuituidan.openhub.exception.UnzipException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
@@ -31,10 +29,6 @@ public class ZipUtils {
 
     private static final Charset CHARSET_GBK = Charset.forName("GBK");
 
-    private static final int MAX_ENTRY_COUNT = 1000;
-
-    private static final long MAX_UNCOMPRESSED_SIZE = 200L * 1024L * 1024L;
-
     /**
      * 解压静态网站，找到压缩包中的index.html，解压与index.html同级的所有文件和文件夹到根目录
      *
@@ -46,7 +40,6 @@ public class ZipUtils {
             zipFile.setCharset(CHARSET_GBK);
             Assert.isTrue(zipFile.isValidZipFile(), "请上传ZIP文件");
             List<FileHeader> fileHeaders = zipFile.getFileHeaders();
-            validateZipEntries(fileHeaders, StringExtUtils.format("{}/ext-resources/modules/{}/", Consts.ROOT_DIR, id));
             List<String> indexPaths = fileHeaders.stream().map(FileHeader::getFileName)
                     .filter(fileName -> StringUtils.endsWith(fileName, "index.html"))
                     .collect(Collectors.toList());
@@ -78,9 +71,7 @@ public class ZipUtils {
         try (ZipFile zipFile = new ZipFile(zipPath)) {
             zipFile.setCharset(CHARSET_GBK);
             Assert.isTrue(zipFile.isValidZipFile(), "请上传ZIP文件");
-            String savePath = StringUtils.removeEndIgnoreCase(zipPath, ".zip");
-            validateZipEntries(zipFile.getFileHeaders(), savePath);
-            zipFile.extractAll(savePath);
+            zipFile.extractAll(StringUtils.removeEndIgnoreCase(zipPath, ".zip"));
         } catch (IOException ex) {
             throw new UnzipException("文件解压失败", ex);
         }
@@ -107,25 +98,6 @@ public class ZipUtils {
             }
         } catch (Exception ex) {
             throw new UnzipException("文件打包异常", ex);
-        }
-    }
-
-    private static void validateZipEntries(List<FileHeader> fileHeaders, String savePath) {
-        Assert.isTrue(fileHeaders.size() <= MAX_ENTRY_COUNT, "ZIP文件数量超过限制");
-        Path basePath = Paths.get(savePath).toAbsolutePath().normalize();
-        long totalSize = 0;
-        for (FileHeader fileHeader : fileHeaders) {
-            String fileName = StringUtils.replace(fileHeader.getFileName(), "\\", "/");
-            Assert.hasText(fileName, "ZIP文件路径非法");
-            Assert.isTrue(!StringUtils.startsWith(fileName, "/")
-                    && !StringUtils.startsWith(fileName, "../")
-                    && !StringUtils.contains(fileName, "/../")
-                    && !StringUtils.contains(fileName, ":"),
-                    "ZIP文件路径非法");
-            Path target = basePath.resolve(fileName).normalize();
-            Assert.isTrue(target.startsWith(basePath), "ZIP文件路径非法");
-            totalSize += Math.max(fileHeader.getUncompressedSize(), 0);
-            Assert.isTrue(totalSize <= MAX_UNCOMPRESSED_SIZE, "ZIP解压后文件过大");
         }
     }
 

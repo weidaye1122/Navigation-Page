@@ -32,18 +32,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 业务参数异常.
-     *
-     * @param throwable 参数异常
-     * @return String
-     */
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public String badRequest(RuntimeException throwable) {
-        return throwable.getMessage();
-    }
-
-    /**
      * 其他未被捕获的异常.
      *
      * @param throwable 所有的未被捕获或定义的异常
@@ -53,6 +41,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public String exception(Throwable throwable) {
         log.error(throwable.getMessage(), throwable);
-        return "服务异常，请稍后重试";
+        return throwable.getMessage();
     }
 }

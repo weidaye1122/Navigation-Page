@@ -24,7 +24,6 @@
                accept="image/x-icon,image/png,image/jpeg,image/jpg,image/gif,image/bmp"
                :on-success="handleSuccess"
                :on-error="handleError"
-               :headers="uploadHeaders"
                @paste.native="handlePaste"
                :multiple="maxCount>1"
                paste
@@ -39,7 +38,6 @@
 </template>
 
 <script>
-import { getCsrfHeaders } from '@/utils/csrf'
 
 export default {
   name: "com-icon-index",
@@ -70,9 +68,6 @@ export default {
     }
   },
   computed: {
-    uploadHeaders() {
-      return getCsrfHeaders()
-    },
     showAdd() {
       return this.uploadList.length < this.maxCount;
     }

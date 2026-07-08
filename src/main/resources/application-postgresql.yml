@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${TEAMNAV_DB_URL:jdbc:postgresql://127.0.0.1:5432/db_dc}
-    username: ${TEAMNAV_DB_USERNAME:root}
-    password: ${TEAMNAV_DB_PASSWORD:123456}
+    url: jdbc:postgresql://127.0.0.1:5432/db_dc
+    username: root
+    password: 123456
   jpa:
     database: postgresql
   sql:

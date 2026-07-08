@@ -5,27 +5,10 @@ const confirmPassword = document.querySelector('.confirm-password');
 const btnLoading = document.querySelector('.btn-loading');
 const submitBtn = document.querySelector('.submit-btn');
 const loginError = document.querySelector('.login-error');
-const loginForm = document.querySelector('.login-form');
-const setupForm = document.querySelector('.setup-form');
 window.onload = function () {
-    if (loginError && loginError.textContent !== '') {
+    if (loginError && loginError.innerHTML !== '') {
         loginError.className = 'login-error opacity1';
     }
-    if (loginForm) {
-        loginForm.addEventListener('submit', function (event) {
-            if (!handleLoginSubmit()) {
-                event.preventDefault();
-            }
-        });
-    }
-    if (setupForm) {
-        setupForm.addEventListener('submit', handleSetupSubmit);
-    }
-    [nickname, username, password, confirmPassword].forEach(function (input) {
-        if (input) {
-            input.addEventListener('focus', inputFocus);
-        }
-    });
 };
 
 function handleLoginSubmit() {
@@ -68,18 +51,12 @@ function handleSetupSubmit(e) {
         return false;
     }
     setLoading(true);
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    };
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
-    const csrfToken = document.querySelector('meta[name="_csrf"]');
-    if (csrfHeader && csrfToken) {
-        headers[csrfHeader.content] = csrfToken.content;
-    }
     fetch('/api/v1/setup/admin', {
         method: 'POST',
-        headers: headers,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
         body: JSON.stringify({
             nickname: nickname.value,
             username: username.value,
@@ -112,7 +89,7 @@ function inputFocus() {
 
 function showError(message) {
     loginError.className = 'login-error opacity1';
-    loginError.textContent = message;
+    loginError.innerHTML = message;
 }
 
 function setLoading(loading) {

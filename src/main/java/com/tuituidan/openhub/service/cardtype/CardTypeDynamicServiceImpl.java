@@ -11,7 +11,6 @@ import com.tuituidan.openhub.consts.AuthTypeEnum;
 import com.tuituidan.openhub.consts.CardTypeEnum;
 import com.tuituidan.openhub.service.CacheService;
 import com.tuituidan.openhub.util.FileExtUtils;
-import com.tuituidan.openhub.util.HttpUtils;
 import com.tuituidan.openhub.util.StringExtUtils;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +20,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -47,7 +47,8 @@ public class CardTypeDynamicServiceImpl implements ICardTypeService {
     public void supplySave(String id, Card card) {
         if (CardTypeEnum.DYNAMIC_HTTP.getType().equals(card.getType())) {
             CardDynamicBuilder dynamicBuilder = card.getDynamicBuilder();
-            HttpUtils.assertPublicHttpUrl(dynamicBuilder.getUrl());
+            Assert.isTrue(StringUtils.startsWith(dynamicBuilder.getUrl(), Elements.HTTP),
+                    "请求地址请以http://或https://开头");
             if (HttpMethod.POST.matches(dynamicBuilder.getHttpMethod())
                     && JsonFactory.FORMAT_NAME_JSON.equalsIgnoreCase(dynamicBuilder.getBodyType())) {
                 Assert.isTrue(JSON.isValid(dynamicBuilder.getBodyJsonData()), "body参数json格式错误");

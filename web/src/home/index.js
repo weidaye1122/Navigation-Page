@@ -70,6 +70,13 @@ export default {
     }
   },
   mounted() {
+    if (localStorage.username
+      && localStorage.password
+      && localStorage.autoLogin === 'true'
+      && !localStorage.userLogout
+      && !this.$store.getters.loginUser.id) {
+      this.$store.dispatch('settings/loadVersion');
+    }
     this.$store.dispatch('home/loadHomeCards', '');
     this.recordHomeVisit();
     this.scheduleAccessStatsRefresh();

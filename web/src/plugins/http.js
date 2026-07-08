@@ -3,7 +3,6 @@ import {Message} from 'element-ui'
 import QS from 'qs';
 import Vue from 'vue';
 import login, {isRelogin} from '@/components/login-dialog'
-import { getCsrfHeaders } from '@/utils/csrf'
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 创建axios实例
@@ -11,21 +10,17 @@ const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
   baseURL: process.env.VUE_APP_BASE_API,
   // 超时
-  timeout: 60000,
-  withCredentials: true,
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN'
+  timeout: 60000
 })
 
 // request拦截器
 service.interceptors.request.use(config => {
-  config.headers = config.headers || {}
-  config.headers['X-Requested-With'] = 'XMLHttpRequest'
-  Object.assign(config.headers, getCsrfHeaders())
-  config.paramsSerializer = param => QS.stringify(param, { indices: false })
-  return config
+  config.headers['X-Requested-With'] = 'XMLHttpRequest';
+  config.paramsSerializer = param => QS.stringify(param, {indices: false});
+  return config;
 }, error => {
-  return Promise.reject(error)
+  console.log(error)
+  Promise.reject(error)
 })
 
 // 响应拦截器

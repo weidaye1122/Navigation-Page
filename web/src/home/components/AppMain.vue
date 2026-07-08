@@ -4,7 +4,7 @@
          class="home-shell"
          :class="{
            'is-focus-mode': activeCategoryId,
-           'is-empty': showPlaceholderState,
+           'is-empty': homeCards.length<=0,
            'is-repainting-home': repaintingHome
          }">
       <div class="category-main"
@@ -26,8 +26,7 @@
                            :datas="category.children[0].cards"></category-children>
         <category-children v-else :datas="category.cards"></category-children>
       </div>
-      <el-empty v-if="showLoadingState" class="empty-state loading-state" description="正在加载数据"></el-empty>
-      <el-empty v-else-if="showEmptyState" class="empty-state" :description="emptyDescription"></el-empty>
+      <el-empty v-if="homeCards.length<=0" class="empty-state" description="没有任何数据"></el-empty>
     </div>
     <el-backtop v-if="!activeCategoryId" target=".app-main"></el-backtop>
   </section>
@@ -51,24 +50,9 @@ export default {
   computed: {
     ...mapGetters([
       'homeCards',
-      'homeCardsLoading',
-      'homeCardsLoaded',
-      'homeCardsLoadError',
     ]),
     activeCategoryId() {
       return this.$store.state.home.activeCategoryId;
-    },
-    showLoadingState() {
-      return this.homeCards.length <= 0 && this.homeCardsLoading;
-    },
-    showEmptyState() {
-      return this.homeCards.length <= 0 && !this.homeCardsLoading && this.homeCardsLoaded;
-    },
-    showPlaceholderState() {
-      return this.showLoadingState || this.showEmptyState;
-    },
-    emptyDescription() {
-      return this.homeCardsLoadError ? '加载失败，请稍后刷新' : '没有任何数据';
     },
   },
   watch: {
