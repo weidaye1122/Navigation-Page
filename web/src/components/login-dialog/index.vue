@@ -43,8 +43,7 @@
         </el-col>
         <el-col :span="24">
           <el-form-item label="">
-            <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
-            <el-checkbox v-model="autoLogin" :disabled="!rememberMe">自动登录</el-checkbox>
+            <el-checkbox v-model="rememberMe">记住账号</el-checkbox>
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -73,7 +72,6 @@ export default {
       show: false,
       loading: false,
       rememberMe: false,
-      autoLogin: false,
       form: {
         username: '',
         password: '',
@@ -88,31 +86,17 @@ export default {
       }
     }
   },
-  watch: {
-    rememberMe(val) {
-      if (!val) {
-        this.autoLogin = false
-      }
-    }
-  },
   mounted() {
     this.show = true;
     this.init();
   },
   methods: {
     init() {
+      delete localStorage.password;
+      delete localStorage.autoLogin;
       if (localStorage.rememberMe === 'true') {
         this.form.username = localStorage.username;
-        this.form.password = localStorage.password;
         this.rememberMe = true;
-        if (localStorage.autoLogin === 'true') {
-          this.autoLogin = true;
-          if (!localStorage.userLogout) {
-            this.$nextTick(() => {
-              this.loginHandler();
-            })
-          }
-        }
       }
     },
     loginHandler() {
@@ -124,18 +108,13 @@ export default {
         }
         if (this.rememberMe) {
           localStorage.username = this.form.username;
-          localStorage.password = this.form.password;
           localStorage.rememberMe = this.rememberMe;
-          if (this.autoLogin) {
-            localStorage.autoLogin = this.autoLogin
-          } else {
-            delete localStorage.autoLogin;
-          }
         } else {
           delete localStorage.username;
-          delete localStorage.password;
           delete localStorage.rememberMe;
         }
+        delete localStorage.password;
+        delete localStorage.autoLogin;
         let cardIds = null;
         if (localStorage.hasOwnProperty('starCardIds')) {
           if (localStorage.starCardIds) {
@@ -144,7 +123,7 @@ export default {
             cardIds = [];
           }
         }
-        this.$http.post(`/api/v1/quick/login?returnUrl=${window.location.href}`, {...this.form, cardIds: cardIds}).then(() => {
+        this.$http.post(`/api/v1/quick/login?returnUrl=${encodeURIComponent(window.location.href)}`, {...this.form, cardIds: cardIds}).then(() => {
           window.location.reload();
           isRelogin.show = false;
           this.show = false;

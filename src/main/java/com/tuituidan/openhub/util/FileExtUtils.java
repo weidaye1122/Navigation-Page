@@ -52,6 +52,9 @@ public class FileExtUtils {
     }
 
     private static boolean fileType(String fileHeader, byte[] data) {
+        if (data == null || data.length < 4) {
+            return false;
+        }
         byte[] src = new byte[4];
         System.arraycopy(data, 0, src, 0, src.length);
         StringBuilder builder = new StringBuilder();

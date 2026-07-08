@@ -7,8 +7,10 @@ import com.tuituidan.openhub.consts.AuthTypeEnum;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import org.jsoup.select.Elements;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
@@ -55,7 +58,12 @@ public class HttpUtils {
      * @return boolean
      */
     public boolean isHttp(String url) {
-        return StringUtils.startsWith(url, HTTP);
+        try {
+            String protocol = new URL(url).getProtocol();
+            return HTTP.equals(protocol) || HTTPS.equals(protocol);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     /**
@@ -89,6 +97,7 @@ public class HttpUtils {
      * @return url
      */
     public static String getDomainUrl(String orgUrl) {
+        assertPublicHttpUrl(orgUrl);
         try {
             URL url = new URL(orgUrl);
             StringBuilder sb = new StringBuilder(url.getProtocol())
@@ -169,9 +178,12 @@ public class HttpUtils {
      * @return Document
      */
     public Document getJsoupDoc(String url) {
+        assertPublicHttpUrl(url);
         try {
             return Jsoup.connect(url)
-                    .timeout(HTTP_TIMEOUT).get();
+                    .followRedirects(false)
+                    .timeout(HTTP_TIMEOUT)
+                    .get();
         } catch (IOException e) {
             return null;
         }
@@ -184,17 +196,68 @@ public class HttpUtils {
      * @return byte[]
      */
     public byte[] toByteArray(String url) {
-        URLConnection conn = null;
+        assertPublicHttpUrl(url);
+        HttpURLConnection conn = null;
         try {
-            conn = new URL(url).openConnection();
+            conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setInstanceFollowRedirects(false);
             conn.setConnectTimeout(HTTP_TIMEOUT);
             conn.setReadTimeout(HTTP_TIMEOUT);
-            return IOUtils.toByteArray(conn);
+            try (InputStream inputStream = conn.getInputStream()) {
+                return IOUtils.toByteArray(inputStream);
+            }
         } catch (Exception ex) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         } finally {
-            IOUtils.close(conn);
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
+    }
+
+    public void assertPublicHttpUrl(String url) {
+        try {
+            URL target = new URL(url);
+            String protocol = target.getProtocol();
+            Assert.isTrue(HTTP.equals(protocol) || HTTPS.equals(protocol), "仅支持http或https地址");
+            String host = target.getHost();
+            Assert.hasText(host, "url host不能为空");
+            Assert.isTrue(!StringUtils.equalsIgnoreCase(host, "localhost")
+                    && !StringUtils.endsWithIgnoreCase(host, ".local"), "不允许访问内网地址");
+            for (InetAddress address : InetAddress.getAllByName(host)) {
+                Assert.isTrue(isPublicAddress(address), "不允许访问内网地址");
+            }
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("url解析错误", ex);
+        }
+    }
+
+    private boolean isPublicAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return false;
+        }
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            if (first == 0 || first >= 224) {
+                return false;
+            }
+            if (first == 100 && second >= 64 && second <= 127) {
+                return false;
+            }
+            if (first == 198 && (second == 18 || second == 19)) {
+                return false;
+            }
+        }
+        if (bytes.length == 16) {
+            int first = bytes[0] & 0xff;
+            return (first & 0xfe) != 0xfc;
+        }
+        return true;
     }
 
     /**
@@ -205,6 +268,7 @@ public class HttpUtils {
      * @return String
      */
     public static String buildQueryParams(String url, List<KeyValueDto> queryParams) {
+        assertPublicHttpUrl(url);
         if (CollectionUtils.isEmpty(queryParams)) {
             return url;
         }

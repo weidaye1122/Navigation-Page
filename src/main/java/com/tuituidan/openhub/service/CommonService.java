@@ -34,12 +34,15 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -78,6 +81,18 @@ public class CommonService implements ApplicationRunner {
             + File.separator + "ext-resources";
 
     private static final String DATA_BACKUP_FILE = PATH_EXT_SOURCE + File.separator + "data-backup.json";
+
+    private static final long MB = 1024L * 1024L;
+
+    private static final Set<String> IMAGE_EXTENSIONS = new HashSet<>(
+            Arrays.asList("png", "jpg", "jpeg", "gif", "webp", "ico"));
+
+    private static final Set<String> ZIP_EXTENSIONS = new HashSet<>(Collections.singletonList("zip"));
+
+    private static final Set<String> BOOKMARK_EXTENSIONS = new HashSet<>(Arrays.asList("html", "htm"));
+
+    private static final Set<String> DANGEROUS_ATTACHMENT_EXTENSIONS = new HashSet<>(
+            Arrays.asList("html", "htm", "js", "mjs", "svg"));
 
     @Resource
     private CardRepository cardRepository;
@@ -131,6 +146,7 @@ public class CommonService implements ApplicationRunner {
      * @return 保存路径
      */
     public Object upload(MultipartFile file, String type) {
+        validateUpload(file, type);
         if (UploadTypeEnum.REVERT.getType().equals(type)) {
             revertData(file);
             return type;
@@ -156,7 +172,7 @@ public class CommonService implements ApplicationRunner {
             throw new ResourceWriteException("文件写入失败", ex);
         }
         if (UploadTypeEnum.DEFAULT.getType().equals(type)) {
-            CARD_ICONS.add(file.getOriginalFilename());
+            CARD_ICONS.add(FilenameUtils.getName(savePath));
         }
         if (UploadTypeEnum.ATTACHMENTS.getType().equals(type)) {
             return attachmentService.saveAttachment(savePath, file);
@@ -165,17 +181,78 @@ public class CommonService implements ApplicationRunner {
     }
 
     private String formatSavePath(String type, MultipartFile file) {
-        String fileName = file.getOriginalFilename();
+        String fileName = safeOriginalFilename(file);
         if (UploadTypeEnum.DEFAULT.getType().equals(type)) {
             String path = CARD_ICON_PATH + fileName;
             Assert.isTrue(!new File(Consts.ROOT_DIR + path).exists(), "文件名已经存在");
             return path;
         }
-        return StringExtUtils.format("/ext-resources/{}/{}/{}.{}",
+        String ext = FilenameUtils.getExtension(fileName);
+        String suffix = StringUtils.isBlank(ext) ? StringUtils.EMPTY : "." + ext;
+        return StringExtUtils.format("/ext-resources/{}/{}/{}{}",
                 type,
                 DateTimeFormatter.BASIC_ISO_DATE.format(LocalDate.now()),
                 StringExtUtils.getUuid(),
-                FilenameUtils.getExtension(fileName));
+                suffix);
+    }
+
+    private void validateUpload(MultipartFile file, String type) {
+        Assert.notNull(file, "上传文件不能为空");
+        Assert.isTrue(!file.isEmpty(), "上传文件不能为空");
+        Assert.isTrue(UploadTypeEnum.contains(type), "不支持的上传类型");
+        String fileName = safeOriginalFilename(file);
+        String ext = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+        if (UploadTypeEnum.DEFAULT.getType().equals(type) || UploadTypeEnum.IMAGES.getType().equals(type)) {
+            assertExtension(ext, IMAGE_EXTENSIONS, "仅支持 png、jpg、jpeg、gif、webp、ico 图片");
+            assertMaxSize(file, 5 * MB);
+            return;
+        }
+        if (UploadTypeEnum.MODULES.getType().equals(type) || UploadTypeEnum.REVERT.getType().equals(type)) {
+            assertExtension(ext, ZIP_EXTENSIONS, "请上传 zip 文件");
+            Assert.isTrue(FileExtUtils.isZip(readFileHeader(file)), "请上传 ZIP 文件");
+            assertMaxSize(file, 100 * MB);
+            return;
+        }
+        if (UploadTypeEnum.BOOKMARK.getType().equals(type)) {
+            assertExtension(ext, BOOKMARK_EXTENSIONS, "请上传 html 书签文件");
+            assertMaxSize(file, 10 * MB);
+            return;
+        }
+        if (UploadTypeEnum.ATTACHMENTS.getType().equals(type)) {
+            Assert.isTrue(!DANGEROUS_ATTACHMENT_EXTENSIONS.contains(ext), "不支持上传该类型附件");
+            assertMaxSize(file, 50 * MB);
+        }
+    }
+
+    private String safeOriginalFilename(MultipartFile file) {
+        String originalFilename = StringUtils.trimToEmpty(file.getOriginalFilename());
+        Assert.hasText(originalFilename, "文件名不能为空");
+        String normalizedName = StringUtils.replace(originalFilename, "\\", "/");
+        String fileName = FilenameUtils.getName(normalizedName);
+        Assert.hasText(fileName, "文件名不能为空");
+        Assert.isTrue(!StringUtils.equals(fileName, ".") && !StringUtils.equals(fileName, ".."), "文件名非法");
+        Assert.isTrue(!StringUtils.containsAny(fileName, '/', '\\', '\0'), "文件名非法");
+        return fileName;
+    }
+
+    private void assertExtension(String ext, Set<String> allowedExtensions, String message) {
+        Assert.hasText(ext, "文件扩展名不能为空");
+        Assert.isTrue(allowedExtensions.contains(StringUtils.lowerCase(ext)), message);
+    }
+
+    private void assertMaxSize(MultipartFile file, long maxSize) {
+        Assert.isTrue(file.getSize() <= maxSize, "文件大小超过限制");
+    }
+
+    private byte[] readFileHeader(MultipartFile file) {
+        try (InputStream inputStream = file.getInputStream()) {
+            byte[] header = new byte[4];
+            int read = inputStream.read(header);
+            Assert.isTrue(read == header.length, "文件内容异常");
+            return header;
+        } catch (IOException ex) {
+            throw new ResourceReadException("文件读取失败", ex);
+        }
     }
 
     /**

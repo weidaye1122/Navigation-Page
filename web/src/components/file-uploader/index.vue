@@ -7,6 +7,7 @@
     :on-success="fileUploadSuccess"
     :on-error="fileUploadError"
     :multiple="multiple"
+    :headers="uploadHeaders"
     :limit="limit">
     <el-button icon="el-icon-upload" size="small">
       <slot></slot>
@@ -15,6 +16,8 @@
 </template>
 
 <script>
+import { getCsrfHeaders } from '@/utils/csrf'
+
 export default {
   name: "file-uploader-index",
   props: {
@@ -40,6 +43,11 @@ export default {
   data() {
     return {
       uploadUrl: `${process.env.VUE_APP_BASE_API}/api/v1/upload/` + this.type,
+    }
+  },
+  computed: {
+    uploadHeaders() {
+      return getCsrfHeaders()
     }
   },
   methods: {

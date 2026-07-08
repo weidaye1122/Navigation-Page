@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: h2
+    active: ${SPRING_PROFILES_ACTIVE:h2}
   jpa:
     show-sql: false
     hibernate:
@@ -11,18 +11,16 @@ spring:
     cache: false
   servlet:
     multipart:
-      max-file-size: 1GB
-      max-request-size: 5GB
+      max-file-size: 100MB
+      max-request-size: 120MB
   security:
     general-user-url:
       - /api/v1/card/icons
       - /api/v1/card/icon
       - /api/v1/card
-      - /api/v1/upload/*
       - /api/v1/category/tree
       - /api/v1/app/version
       - /api/v1/user/password
-      - /api/v1/datasource
     permit-url:
       - /docs/**
       - /assets/**
@@ -43,6 +41,16 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: non_null
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+team-nav:
+  security:
+    cors:
+      # 默认不开放跨域。如需跨域访问，显式配置可信来源，例如: https://nav.example.com
+      allowed-origin-patterns:
 # 日志相关的配置，还有些问题，后续要改成xml的方式来配置.
 logging:
   file:
@@ -68,10 +76,10 @@ clear-useless-files:
 
 project:
   remote-version-url: https://gitee.com/tuituidan/team-nav/releases/latest
-  version: @project.version@
+  version: '@project.version@'
 
 backup-sql:
-  select-table: select table_name from information_schema.tables where lower(table_schema)='team_nav'
-  select-data: select * from team_nav.{}
-  select-id: select id from team_nav.{} where id=:id
-  insert-sql: insert into team_nav.{}({}) values({});
+  select-table: "select table_name from information_schema.tables where lower(table_schema)='team_nav'"
+  select-data: "select * from team_nav.{}"
+  select-id: "select id from team_nav.{} where id=:id"
+  insert-sql: "insert into team_nav.{}({}) values({});"

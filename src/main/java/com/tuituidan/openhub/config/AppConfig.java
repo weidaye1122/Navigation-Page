@@ -2,12 +2,18 @@ package com.tuituidan.openhub.config;
 
 import com.tuituidan.openhub.consts.Consts;
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.time.Duration;
+import java.util.Arrays;
 import javax.servlet.MultipartConfigElement;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,6 +40,9 @@ public class AppConfig {
      */
     private static final int READ_TIMEOUT = 120;
 
+    @Value("${team-nav.security.cors.allowed-origin-patterns:}")
+    private String allowedOriginPatterns;
+
     /**
      * 初始RestTemplate 设置超时时间.
      *
@@ -42,6 +51,7 @@ public class AppConfig {
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplateBuilder()
+                .requestFactory(NoRedirectSimpleClientHttpRequestFactory::new)
                 .setConnectTimeout(Duration.ofSeconds(CONNECT_TIMEOUT))
                 .setReadTimeout(Duration.ofSeconds(READ_TIMEOUT))
                 .build();
@@ -70,20 +80,29 @@ public class AppConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        // 设置访问源地址
-        config.addAllowedOriginPattern("*");
-        // 设置访问源请求头
-        config.addAllowedHeader("*");
-        // 设置访问源请求方法
-        config.addAllowedMethod("*");
-        // 有效期 1800秒
-        config.setMaxAge(1800L);
+        if (StringUtils.isNotBlank(allowedOriginPatterns)) {
+            config.setAllowCredentials(true);
+            Arrays.stream(StringUtils.split(allowedOriginPatterns, ","))
+                    .map(StringUtils::trimToEmpty)
+                    .filter(StringUtils::isNotBlank)
+                    .forEach(config::addAllowedOriginPattern);
+            config.addAllowedHeader("*");
+            config.addAllowedMethod("*");
+            config.setMaxAge(1800L);
+        }
         // 添加映射路径，拦截一切请求
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         // 返回新的CorsFilter
         return new CorsFilter(source);
+    }
+
+    private static class NoRedirectSimpleClientHttpRequestFactory extends SimpleClientHttpRequestFactory {
+        @Override
+        protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+            super.prepareConnection(connection, httpMethod);
+            connection.setInstanceFollowRedirects(false);
+        }
     }
 
 }

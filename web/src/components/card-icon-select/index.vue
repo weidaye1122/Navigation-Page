@@ -7,6 +7,7 @@
           :show-file-list="false"
           accept="image/x-icon,image/png,image/jpeg,image/jpg,image/gif,image/bmp"
           :on-success="uploadSuccess"
+          :headers="uploadHeaders"
           :limit="1">
           <el-button icon="el-icon-upload" size="small">图标上传</el-button>
         </el-upload>
@@ -53,6 +54,8 @@
 </template>
 
 <script>
+import { getCsrfHeaders } from '@/utils/csrf'
+
 const DEFAULT_ICON_PATH = '/app-icon.png';
 
 export default {
@@ -142,6 +145,11 @@ export default {
         '#37474f',
         '#263238'
       ]
+    }
+  },
+  computed: {
+    uploadHeaders() {
+      return getCsrfHeaders()
     }
   },
   methods: {

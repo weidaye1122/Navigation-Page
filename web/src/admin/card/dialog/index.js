@@ -76,8 +76,6 @@ export default {
       } else {
         this.title = '申请卡片';
       }
-      console.log(JSON.stringify(this.form))
-      console.log(JSON.stringify(item))
       this.show = true;
       this.$nextTick(() => {
         this.$refs.refCategory.init();

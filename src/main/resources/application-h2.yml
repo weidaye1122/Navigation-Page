@@ -2,13 +2,13 @@ spring:
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:./database/data;AUTO_SERVER=TRUE
-    username: sa
-    password: 123456
+    username: ${TEAMNAV_H2_USERNAME:sa}
+    password: ${TEAMNAV_H2_PASSWORD:123456}
   h2:
     console:
-      enabled: true
+      enabled: ${TEAMNAV_H2_CONSOLE_ENABLED:false}
       settings:
-        web-allow-others: true
+        web-allow-others: ${TEAMNAV_H2_CONSOLE_ALLOW_REMOTE:false}
   jpa:
     database: h2
   sql:

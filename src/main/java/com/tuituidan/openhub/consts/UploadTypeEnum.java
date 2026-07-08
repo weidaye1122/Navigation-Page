@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.consts;
 
+import java.util.Arrays;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -31,7 +32,21 @@ public enum UploadTypeEnum {
     /**
      * 卡片附件
      */
-    ATTACHMENTS("attachments");
+    ATTACHMENTS("attachments"),
+
+    /**
+     * 卡片图标
+     */
+    IMAGES("images"),
+
+    /**
+     * 静态网站压缩包
+     */
+    MODULES("modules");
 
     private String type;
+
+    public static boolean contains(String type) {
+        return Arrays.stream(values()).anyMatch(item -> item.getType().equals(type));
+    }
 }

@@ -25,6 +25,7 @@ import com.tuituidan.openhub.util.ListUtils;
 import com.tuituidan.openhub.util.SecurityUtils;
 import com.tuituidan.openhub.util.StringExtUtils;
 import com.tuituidan.openhub.util.TransactionUtils;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -282,6 +283,8 @@ public class CardService {
      */
     public void save(String id, CardDto cardDto) {
         applyDefaultIcon(cardDto);
+        boolean admin = SecurityUtils.isAdmin(SecurityUtils.getUserInfo());
+        validateCardSave(cardDto, admin);
         this.saveIcon(cardDto.getIcon());
         Card card = BeanExtUtils.convert(cardDto, Card::new);
         card.setId(StringUtils.isBlank(id) ? StringExtUtils.getUuid() : id);
@@ -290,7 +293,7 @@ public class CardService {
         if (card.getSort() == null) {
             card.setSort(cardRepository.getMaxSort(card.getCategory()) + 1);
         }
-        if (SecurityUtils.isAdmin(SecurityUtils.getUserInfo())) {
+        if (admin) {
             card.setAudit(true);
         } else {
             card.setAudit(false);
@@ -302,6 +305,30 @@ public class CardService {
             cardRepository.save(card);
             attachmentService.saveAttachment(card.getId(), cardDto.getAttachmentIds());
         });
+    }
+
+    private void validateCardSave(CardDto cardDto, boolean admin) {
+        Assert.notNull(cardDto, "卡片信息不能为空");
+        Assert.hasText(cardDto.getType(), "卡片类型不能为空");
+        if (!admin) {
+            Assert.isTrue(CardTypeEnum.DEFAULT.getType().equals(cardDto.getType()), "普通用户仅支持申请普通卡片");
+        }
+        if (StringUtils.isNotBlank(cardDto.getUrl())) {
+            Assert.isTrue(isSafeNavigationUrl(cardDto.getUrl()), "链接地址不安全");
+        }
+    }
+
+    private boolean isSafeNavigationUrl(String url) {
+        if (StringUtils.startsWith(url, "/") && !StringUtils.startsWith(url, "//")) {
+            return true;
+        }
+        try {
+            URI uri = URI.create(url);
+            return uri.isAbsolute()
+                    && ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()));
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private void saveIcon(CardIconDto cardIconDto) {
@@ -431,6 +458,7 @@ public class CardService {
             Assert.notNull(httpMethod, "http-method异常");
             String body;
             try {
+                HttpUtils.assertPublicHttpUrl(builder.getUrl());
                 ResponseEntity<String> exchange = restTemplate.exchange(
                         HttpUtils.buildQueryParams(builder.getUrl(), builder.getQueryParams()),
                         httpMethod, HttpUtils.buildHttpEntity(builder), String.class);
@@ -438,7 +466,7 @@ public class CardService {
                 body = exchange.getBody();
             } catch (Exception ex) {
                 log.error("http接口请求失败", ex);
-                return ex.getMessage();
+                return "动态内容获取失败";
             }
             if (JSON.isValid(body) && StringUtils.isNotBlank(builder.getResultExp())) {
                 return (String) JSONPath.eval(body, builder.getResultExp());
@@ -457,7 +485,7 @@ public class CardService {
                 return results.get(0);
             } catch (Exception ex) {
                 log.error("数据库查询失败", ex);
-                return ex.getMessage();
+                return "动态内容获取失败";
             }
         }
         return StringUtils.EMPTY;

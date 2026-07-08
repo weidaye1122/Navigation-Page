@@ -9,7 +9,7 @@
              @node-drop="nodeDrop"
              node-key="id">
       <span style="display: flex;justify-content: space-between" slot-scope="{ node, data }">
-        <span v-html="node.label"></span>
+        <span v-text="node.label"></span>
       </span>
     </el-tree>
   </el-dialog>
