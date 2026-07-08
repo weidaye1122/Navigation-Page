@@ -86,7 +86,9 @@ public class SecurityConfig {
                 "camera=(), microphone=(), geolocation=()"));
         http.headers().addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy",
                 "object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'"));
-        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+        http.csrf()
+                .ignoringAntMatchers("/api/v1/access-statistics/visit")
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
         http.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class);
         http.userDetailsService(userService);
 
