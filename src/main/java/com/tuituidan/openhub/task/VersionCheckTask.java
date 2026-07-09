@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class VersionCheckTask {
 
-    @Value("v${project.version}")
+    @Value("${project.version}")
     private String currentVersion;
 
     @Value("${project.remote-version-url}")
@@ -61,10 +61,14 @@ public class VersionCheckTask {
         if (StringUtils.isBlank(remoteVersion)) {
             return;
         }
-        versionInfo.setRemoteVersion(remoteVersion);
+        versionInfo.setRemoteVersion(normalizeVersion(remoteVersion));
         ToIntFunction<String> func = version -> Integer.parseInt(version.replaceAll("\\D", ""));
         versionInfo.setHasNewVersion(func.applyAsInt(versionInfo.getRemoteVersion())
                 > func.applyAsInt(versionInfo.getCurrentVersion()));
+    }
+
+    private String normalizeVersion(String version) {
+        return StringUtils.removeStartIgnoreCase(StringUtils.trim(version), "v");
     }
 
 }

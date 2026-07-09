@@ -107,6 +107,11 @@ export default {
       return !this.sidebar.opened;
     }
   },
+  mounted() {
+    if (!this.$store.state.settings.version.currentVersion) {
+      this.$store.dispatch('settings/loadVersion');
+    }
+  },
   methods: {
     openLogin() {
       if (isRelogin.show) {

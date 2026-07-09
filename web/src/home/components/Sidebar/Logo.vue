@@ -2,10 +2,16 @@
   <div class="sidebar-logo-container" :class="{'collapse':collapse}" :style="{ backgroundColor: menuBackground }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/" @click.native="restoreHomeView">
-        <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }} </h1>
+        <div class="sidebar-logo-copy">
+          <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }}</h1>
+          <p class="sidebar-version">{{ versionLabel }}</p>
+        </div>
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/" @click.native="restoreHomeView">
-        <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }} </h1>
+        <div class="sidebar-logo-copy">
+          <h1 class="sidebar-title" :style="{ color: logoTitleColor }">{{ title }}</h1>
+          <p class="sidebar-version">{{ versionLabel }}</p>
+        </div>
       </router-link>
     </transition>
   </div>
@@ -37,6 +43,10 @@ export default {
     },
     title() {
       return this.$store.state.settings.title;
+    },
+    versionLabel() {
+      const currentVersion = this.$store.state.settings.version.currentVersion || '1.0.0';
+      return `V ${String(currentVersion).replace(/^v/i, '')}`;
     }
   },
   methods: {
@@ -87,8 +97,7 @@ export default {
 .sidebar-logo-container {
   position: relative;
   width: 100%;
-  height: 76px;
-  line-height: 76px;
+  height: 108px;
   background: transparent !important;
   text-align: center;
   overflow: visible;
@@ -102,12 +111,20 @@ export default {
     gap: 8px;
     height: 100%;
     width: 100%;
-    padding: 8px 14px 0;
+    padding: 10px 14px 0;
     box-sizing: border-box;
     color: inherit;
     text-decoration: none;
     transition: transform .18s ease, filter .18s ease;
     outline: none;
+
+    & .sidebar-logo-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transform: translateY(2px);
+    }
 
     &::before {
       display: none;
@@ -168,6 +185,17 @@ export default {
       transition: color .18s ease, text-shadow .18s ease, transform .18s ease;
     }
 
+    & .sidebar-version {
+      margin: 0;
+      color: rgba(236, 244, 241, .64);
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
   }
 
   &.collapse {
@@ -179,6 +207,10 @@ export default {
     }
 
     .sidebar-title {
+      display: none;
+    }
+
+    .sidebar-version {
       display: none;
     }
 
