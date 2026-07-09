@@ -97,7 +97,7 @@ export default {
 .sidebar-logo-container {
   position: relative;
   width: 100%;
-  height: 108px;
+  height: 132px;
   background: transparent !important;
   text-align: center;
   overflow: visible;
@@ -105,13 +105,11 @@ export default {
 
   & .sidebar-logo-link {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    display: grid;
+    place-items: center;
     height: 100%;
     width: 100%;
-    padding: 10px 14px 0;
+    padding: 0 14px;
     box-sizing: border-box;
     color: inherit;
     text-decoration: none;
@@ -122,8 +120,10 @@ export default {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      transform: translateY(2px);
+      justify-content: center;
+      gap: 8px;
+      min-height: 100%;
+      transform: translateY(0);
     }
 
     &::before {
