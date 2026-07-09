@@ -74,28 +74,35 @@ export default {
     selectCategory(id) {
       this.$store.commit('home/SET_ACTIVE_CATEGORY', id);
       this.$nextTick(() => {
+        this.clearHomeFocusTopBuffer();
         const scrollToTitle = () => {
           if (this.$store.state.home.activeCategoryId !== id) {
             return;
           }
-          const anchor = document.getElementById(id);
-          const category = anchor && anchor.closest('.category-main');
-          const title = category && category.querySelector('.category-title');
-          const titleText = category && category.querySelector('.category-title-text');
-          const scroller = document.querySelector('.app-main');
-          const trigger = Array.from(document.querySelectorAll('.sidebar-container .el-menu-item'))
-            .find(item => item.getAttribute('data-menu-id') === id);
-          const triggerText = trigger && trigger.querySelector('.sidebar-menu-title');
+          const alignment = this.getHomeScrollAlignment(id);
+          if (!alignment) {
+            return;
+          }
+          const { scroller, nextScrollTop } = alignment;
+          const focusTopBuffer = Math.max(0, -nextScrollTop);
 
-          if (!title || !scroller || !trigger) {
+          if (focusTopBuffer > 0) {
+            this.setHomeFocusTopBuffer(focusTopBuffer);
+            requestAnimationFrame(() => {
+              const bufferedAlignment = this.getHomeScrollAlignment(id);
+              if (!bufferedAlignment) {
+                return;
+              }
+              this.animateHomeScroll(
+                bufferedAlignment.scroller,
+                this.clampHomeScrollTop(bufferedAlignment.scroller, bufferedAlignment.nextScrollTop),
+                id
+              );
+            });
             return;
           }
 
-          const rightTarget = titleText || title;
-          const leftTarget = triggerText || trigger;
-          const nextScrollTop = this.getAlignedHomeScrollTop(scroller, rightTarget, leftTarget);
-
-          this.animateHomeScroll(scroller, nextScrollTop, id);
+          this.animateHomeScroll(scroller, this.clampHomeScrollTop(scroller, nextScrollTop), id);
         };
 
         requestAnimationFrame(() => requestAnimationFrame(scrollToTitle));
@@ -117,28 +124,49 @@ export default {
       const scale = rect.height / scroller.offsetHeight;
       return scale > 0 ? scale : 1;
     },
-    getAlignedHomeScrollTop(scroller, rightTarget, leftTarget) {
+    getRawAlignedHomeScrollTop(scroller, rightTarget, leftTarget) {
       const scrollScale = this.getHomeScrollScale(scroller);
-      const maxScrollTop = scroller.scrollHeight - scroller.clientHeight;
-      const nextScrollTop = scroller.scrollTop + (rightTarget.getBoundingClientRect().top - leftTarget.getBoundingClientRect().top) / scrollScale;
-      return Math.max(0, Math.min(maxScrollTop, nextScrollTop));
+      return scroller.scrollTop + (rightTarget.getBoundingClientRect().top - leftTarget.getBoundingClientRect().top) / scrollScale;
+    },
+    clampHomeScrollTop(scroller, scrollTop) {
+      const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      return Math.max(0, Math.min(maxScrollTop, scrollTop));
+    },
+    getHomeScrollAlignment(id) {
+      const anchor = document.getElementById(id);
+      const category = anchor && anchor.closest('.category-main');
+      const title = category && category.querySelector('.category-title');
+      const titleText = category && category.querySelector('.category-title-text');
+      const scroller = document.querySelector('.app-main');
+      const trigger = Array.from(document.querySelectorAll('.sidebar-container .el-menu-item'))
+        .find(item => item.getAttribute('data-menu-id') === id);
+      const triggerText = trigger && trigger.querySelector('.sidebar-menu-title');
+
+      if (!title || !scroller || !trigger) {
+        return null;
+      }
+
+      return {
+        scroller,
+        nextScrollTop: this.getRawAlignedHomeScrollTop(scroller, titleText || title, triggerText || trigger),
+      };
+    },
+    setHomeFocusTopBuffer(value) {
+      this.$root.$emit('home:setFocusTopBuffer', value);
+    },
+    clearHomeFocusTopBuffer() {
+      this.$root.$emit('home:clearFocusTopBuffer');
     },
     settleHomeScroll(scroller, id) {
       requestAnimationFrame(() => {
         if (this.$store.state.home.activeCategoryId !== id) {
           return;
         }
-        const anchor = document.getElementById(id);
-        const category = anchor && anchor.closest('.category-main');
-        const title = category && category.querySelector('.category-title');
-        const titleText = category && category.querySelector('.category-title-text');
-        const trigger = Array.from(document.querySelectorAll('.sidebar-container .el-menu-item'))
-          .find(item => item.getAttribute('data-menu-id') === id);
-        const triggerText = trigger && trigger.querySelector('.sidebar-menu-title');
-        if (!title || !scroller || !trigger) {
+        const alignment = this.getHomeScrollAlignment(id);
+        if (!alignment) {
           return;
         }
-        scroller.scrollTop = this.getAlignedHomeScrollTop(scroller, titleText || title, triggerText || trigger);
+        scroller.scrollTop = this.clampHomeScrollTop(scroller, alignment.nextScrollTop);
       });
     },
     animateHomeScroll(scroller, targetTop, id) {

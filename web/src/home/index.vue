@@ -219,7 +219,7 @@ body {
   }
 
   .home-shell.is-focus-mode {
-    padding-top: 154px;
+    padding-top: calc(154px + var(--home-focus-top-buffer, 0px));
   }
 
   .fixed-header .navbar {
@@ -463,7 +463,7 @@ body {
   }
 
   .home-shell.is-focus-mode {
-    padding-top: 102px;
+    padding-top: calc(102px + var(--home-focus-top-buffer, 0px));
     padding-bottom: 520px;
   }
 

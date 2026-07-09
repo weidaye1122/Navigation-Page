@@ -6,7 +6,8 @@
            'is-focus-mode': activeCategoryId,
            'is-empty': homeCards.length<=0,
            'is-repainting-home': repaintingHome
-         }">
+         }"
+         :style="homeShellStyle">
       <div class="category-main"
            :class="getCategoryStateClass(category)"
            v-for="(category, index) in homeCards"
@@ -41,10 +42,19 @@ export default {
   components: {
     'category-children': () => import('@/home/components/category-children.vue'),
   },
+  mounted() {
+    this.$root.$on('home:setFocusTopBuffer', this.setFocusTopBuffer);
+    this.$root.$on('home:clearFocusTopBuffer', this.clearFocusTopBuffer);
+  },
+  beforeDestroy() {
+    this.$root.$off('home:setFocusTopBuffer', this.setFocusTopBuffer);
+    this.$root.$off('home:clearFocusTopBuffer', this.clearFocusTopBuffer);
+  },
   data() {
     return {
       homeRenderKey: 0,
       repaintingHome: false,
+      focusTopBuffer: 0,
     };
   },
   computed: {
@@ -53,6 +63,11 @@ export default {
     ]),
     activeCategoryId() {
       return this.$store.state.home.activeCategoryId;
+    },
+    homeShellStyle() {
+      return {
+        '--home-focus-top-buffer': `${this.focusTopBuffer}px`,
+      };
     },
   },
   watch: {
@@ -96,6 +111,7 @@ export default {
     },
     restoreHomeMode() {
       this.cancelHomeScrollAnimation();
+      this.clearFocusTopBuffer();
       this.homeRenderKey += 1;
       this.repaintingHome = true;
       this.$nextTick(() => {
@@ -116,6 +132,12 @@ export default {
       }
       window.__teamNavHomeScrollFrame = null;
       window.__teamNavHomeScrollToken = (window.__teamNavHomeScrollToken || 0) + 1;
+    },
+    setFocusTopBuffer(value) {
+      this.focusTopBuffer = Math.max(0, Math.round(value || 0));
+    },
+    clearFocusTopBuffer() {
+      this.focusTopBuffer = 0;
     },
   },
 }
@@ -149,7 +171,7 @@ export default {
 }
 
 .home-shell.is-focus-mode {
-  padding-top: 122px;
+  padding-top: calc(122px + var(--home-focus-top-buffer, 0px));
   padding-bottom: 960px;
 }
 
