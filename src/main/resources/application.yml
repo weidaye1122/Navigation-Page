@@ -20,7 +20,6 @@ spring:
       - /api/v1/card
       - /api/v1/upload/*
       - /api/v1/category/tree
-      - /api/v1/app/version
       - /api/v1/user/password
       - /api/v1/datasource
     permit-url:
@@ -32,6 +31,7 @@ spring:
       - /api/v1/attachment/*/actions/download
       - /api/v1/card/*/dynamic/content
       - /api/v1/setting
+      - /api/v1/app/version
       - /api/v1/access-statistics/visit
       - /api/v1/access-statistics/summary
       - /api/v1/quick/login
