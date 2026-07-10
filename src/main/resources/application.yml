@@ -46,7 +46,7 @@ spring:
 # 日志相关的配置，还有些问题，后续要改成xml的方式来配置.
 logging:
   file:
-    name: logs/NavigationPage.log
+    name: logs/Navigation-Page.log
   level:
     root: info
     org:
@@ -59,7 +59,7 @@ thread-pool:
   max-pool-num: 2
 
 # 服务名，用于页面logo显示
-nav-name: NavigationPage
+nav-name: Navigation-Page
 
 # 是否开启定时清没有使用的文件
 clear-useless-files:
@@ -67,7 +67,7 @@ clear-useless-files:
   cron: 0 0 1 * * ?
 
 project:
-  remote-version-url: https://gitee.com/tuituidan/team-nav/releases/latest
+  remote-version-url: https://github.com/weidaye1122/Navigation-Page/releases/latest
   version: @project.version@
 
 backup-sql:

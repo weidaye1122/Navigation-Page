@@ -11,8 +11,8 @@
     <groupId>com.tuituidan.openhub</groupId>
     <artifactId>NavigationPage</artifactId>
     <version>1.0.0</version>
-    <name>NavigationPage</name>
-    <description>NavigationPage</description>
+    <name>Navigation Page</name>
+    <description>Navigation Page</description>
 
     <properties>
         <java.version>1.8</java.version>
