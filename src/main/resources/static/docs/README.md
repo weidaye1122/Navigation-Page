@@ -99,7 +99,7 @@ Springboot、SpringDataJpa、SpringSecurity、h2database
 
 #### 方式一：手动部署
 
-从[Releases](https://github.com/tuituidan/team-nav/releases)下载team-nav.tar.gz放到服务器上解压，对应修改config/application.yml文件，使用team-nav/bin/start.sh 启动项目即可。
+从[Releases](https://github.com/tuituidan/team-nav/releases)下载NavigationPage.tar.gz放到服务器上解压，对应修改config/application.yml文件，使用NavigationPage/bin/start.sh 启动项目即可。
 
 #### 方式二：docker部署
 
@@ -107,18 +107,18 @@ docker启动
 
 ```
 docker run -d -p 8082:8080 \
--v /opt/team-nav/logs:/logs \
--v /opt/team-nav/database:/database \
--v /opt/team-nav/ext-resources:/ext-resources \
--e nav-name="团队导航服务" \
-registry.cn-chengdu.aliyuncs.com/tuituidan/team-nav:2.0.6
+-v /opt/NavigationPage/logs:/logs \
+-v /opt/NavigationPage/database:/database \
+-v /opt/NavigationPage/ext-resources:/ext-resources \
+-e nav-name="NavigationPage" \
+registry.cn-chengdu.aliyuncs.com/tuituidan/navigationpage:2.0.6
 
 ```
 
 参数说明：
 
 - logs、database、ext-resources分别将日志，数据库文件，额外资源（自定义图标、网址文件、附件等）挂载出来。
-- nav-name：导航服务的名字，可不传，默认"团队导航服务"。
+- nav-name：导航服务的名字，可不传，默认"NavigationPage"。
 
 其他参数参考config/application.yml，可以将此文件挂载出来修改配置，也可通过`docker`的`-e`参数替换`application.yml`中的配置。
 
@@ -127,9 +127,9 @@ registry.cn-chengdu.aliyuncs.com/tuituidan/team-nav:2.0.6
 如果不希望因为本服务停掉导致上传的静态网站无法访问，可以在后台系统设置中设置静态网站通过nginx访问，nginx配置示例如下：
 
 ```nginx
-# 将/ext-resources/modules的请求地址拦截并访问到目录/opt/team-nav/team-nav/ext-resources/modules
+# 将/ext-resources/modules的请求地址拦截并访问到目录/opt/NavigationPage/NavigationPage/ext-resources/modules
 location /ext-resources/modules {
-	alias   /opt/team-nav/ext-resources/modules;
+	alias   /opt/NavigationPage/ext-resources/modules;
 	index  index.html index.htm;
 }
 ```

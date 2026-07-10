@@ -42,7 +42,7 @@ public class CompletableUtils implements ApplicationContextAware {
         DEF_CONFIG.setMaxPoolNum(maximumPoolSize);
         DEF_CONFIG.setKeepAliveTime(KEEP_ALIVE_TIME);
         DEF_CONFIG.setQueueSize(QUEUE_SIZE);
-        DEF_CONFIG.setThreadNamePrefix("team-nav");
+        DEF_CONFIG.setThreadNamePrefix("NavigationPage");
     }
 
     /**

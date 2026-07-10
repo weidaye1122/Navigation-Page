@@ -1,4 +1,7 @@
-name: Publish container
+name: Publish Docker Images
+run-name: |
+  Release version ${{ github.ref_name }}
+  Publish Docker Images
 
 on:
   push:
@@ -6,9 +9,9 @@ on:
       - 'v*.*.*'
 
 env:
-  IMAGE_NAME: teamnav2
+  IMAGE_NAME: navigationpage
   DOCKERHUB_NAMESPACE: weidaye1122
-  GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/teamnav2
+  GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/navigationpage
 
 jobs:
   publish:
@@ -79,7 +82,7 @@ jobs:
             docker.io/${{ env.DOCKERHUB_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
             docker.io/${{ env.DOCKERHUB_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
           labels: |
-            org.opencontainers.image.title=TeamNav2
+            org.opencontainers.image.title=NavigationPage
             org.opencontainers.image.description=Spring Boot and Vue team navigation service.
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ env.VERSION_TAG }}

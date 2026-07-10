@@ -3,4 +3,4 @@ server:
   port: 8080
 
 # 服务名，用于页面logo显示
-nav-name: 团队服务导航
+nav-name: NavigationPage

@@ -1,54 +1,42 @@
-# 团队导航服务
+# NavigationPage
 
-团队导航服务是一个轻量级的网址导航和团队资源管理系统，后端使用 Spring Boot，前端使用 Vue 2 和 Element UI。项目支持分类导航、卡片管理、通知公告、用户和角色管理、附件上传、静态网站上传、动态卡片和数据备份还原。
-
-当前项目版本：`1.0.0`
-
-默认使用 H2 数据库，无需额外数据库服务即可运行。容器内默认端口为 `8080`，首次启动时会在登录页引导创建管理员用户名、账号和密码。
+NavigationPage 是一个面向团队场景的导航与资源管理系统，用于统一整理常用网站入口和业务资源。项目基于 Spring Boot 与 Vue 2 构建，支持分类导航、卡片管理、用户与角色管理、附件上传、静态网站托管，以及动态卡片和数据备份恢复等能力。
 
 ## 群晖 Compose 部署
 
-在群晖 File Station 中创建目录：
+先在群晖 File Station 中创建以下目录：
 
 ```text
-/volume1/docker/team-nav
-/volume1/docker/team-nav/config
-/volume1/docker/team-nav/logs
-/volume1/docker/team-nav/database
-/volume1/docker/team-nav/ext-resources
+/volume1/docker/NavigationPage
+/volume1/docker/NavigationPage/config
+/volume1/docker/NavigationPage/logs
+/volume1/docker/NavigationPage/database
+/volume1/docker/NavigationPage/ext-resources
 ```
 
-把本项目的 `config/application.yml` 放到：
+再把项目中的 `config/application.yml` 放到：
 
 ```text
-/volume1/docker/team-nav/config/application.yml
+/volume1/docker/NavigationPage/config/application.yml
 ```
 
-在 `/volume1/docker/team-nav/compose.yaml` 写入下面内容。`image` 可以使用 Docker Hub 镜像，也可以换成 GitHub Container Registry 镜像 `ghcr.io/weidaye1122/teamnav2:latest`。
+然后在 `/volume1/docker/NavigationPage/compose.yaml` 中写入下面内容：
 
 ```yaml
 services:
-  team-nav:
-    image: weidaye1122/teamnav2:latest
-    container_name: team-nav
-    restart: unless-stopped
+  NavigationPage:
+    image: weidaye1122/navigationpage:latest # Docker Hub 镜像，可按需改成指定版本标签
+    container_name: NavigationPage # 容器名称
+    restart: unless-stopped # 开机自动重启，除非手动停止
     ports:
-      - "8082:8080"
+      - "8082:8080" # 群晖访问端口:容器内部端口
     environment:
-      TZ: Asia/Shanghai
+      TZ: Asia/Shanghai # 容器时区
     volumes:
-      - /volume1/docker/team-nav/config/application.yml:/config/application.yml:ro
-      - /volume1/docker/team-nav/logs:/logs
-      - /volume1/docker/team-nav/database:/database
-      - /volume1/docker/team-nav/ext-resources:/ext-resources
+      - /volume1/docker/NavigationPage/config/application.yml:/config/application.yml:ro # 挂载配置文件，只读
+      - /volume1/docker/NavigationPage/logs:/logs # 挂载日志目录
+      - /volume1/docker/NavigationPage/database:/database # 挂载数据库目录
+      - /volume1/docker/NavigationPage/ext-resources:/ext-resources # 挂载额外资源目录
 ```
 
-在群晖 Container Manager 中进入“项目”，选择“新增”，项目路径选择 `/volume1/docker/team-nav`，使用上面的 `compose.yaml` 创建并启动。
-
-启动后访问：
-
-```text
-http://群晖IP:8082
-```
-
-需要修改站点名称、端口等内容时，编辑 `/volume1/docker/team-nav/config/application.yml` 后重启容器。管理员密码可登录后在页面中修改或重置。
+在群晖 Container Manager 中进入“项目”，选择“新增”，项目路径选择 `/volume1/docker/NavigationPage`，使用上面的 `compose.yaml` 创建并启动。启动后访问 `http://群晖IP:8082`。

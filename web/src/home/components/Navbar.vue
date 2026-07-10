@@ -7,7 +7,7 @@
         class="home-search-input"
         autocomplete="off"
         clearable
-        name="team-nav-home-search"
+        name="NavigationPage-home-search"
         placeholder="搜索"
         @clear="exitSearch(true)"
         @keydown.native.esc.stop.prevent="exitSearch"

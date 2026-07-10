@@ -46,7 +46,7 @@ spring:
 # 日志相关的配置，还有些问题，后续要改成xml的方式来配置.
 logging:
   file:
-    name: logs/team-nav.log
+    name: logs/NavigationPage.log
   level:
     root: info
     org:
@@ -59,7 +59,7 @@ thread-pool:
   max-pool-num: 2
 
 # 服务名，用于页面logo显示
-nav-name: 团队服务导航
+nav-name: NavigationPage
 
 # 是否开启定时清没有使用的文件
 clear-useless-files:
