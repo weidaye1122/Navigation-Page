@@ -2,13 +2,11 @@ name: Publish container
 
 on:
   push:
-    branches:
-      - develop
-  workflow_dispatch:
+    tags:
+      - 'v*.*.*'
 
 env:
   IMAGE_NAME: teamnav2
-  VERSION_TAG: "1.0.0"
   DOCKERHUB_NAMESPACE: weidaye1122
   GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/teamnav2
 
@@ -46,6 +44,9 @@ jobs:
           mvn clean compile -DskipTests
           cp -rf web/dist/* target/classes/static/
           mvn package -DskipTests
+
+      - name: Resolve version tag
+        run: echo "VERSION_TAG=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
