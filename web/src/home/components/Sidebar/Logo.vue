@@ -45,7 +45,7 @@ export default {
       return this.$store.state.settings.title;
     },
     versionLabel() {
-      const currentVersion = this.$store.state.settings.version.currentVersion || '1.0.1';
+      const currentVersion = this.$store.state.settings.version.currentVersion || '1.0.0';
       return `V ${String(currentVersion).replace(/^v/i, '')}`;
     }
   },
