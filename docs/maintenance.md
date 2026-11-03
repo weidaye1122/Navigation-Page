@@ -23,9 +23,12 @@
 宿主机已有相应工具时可做前端热更新，先按 README 启动使用全新数据的本地后端，然后另开终端：
 
 ```sh
+bash <<'BASH'
+set -euo pipefail
 cd web
 npm ci --legacy-peer-deps
 VUE_APP_PROXY_URL=http://127.0.0.1:18082 npm run dev -- --host 127.0.0.1 --port 18083
+BASH
 ```
 
 访问 <http://127.0.0.1:18083>。这里覆盖已有的 `localhost:1114` 开发代理，不改源文件和现用端口。Node 16 用于兼容当前 Vue CLI 4，npm 固定为 9.9.4，依赖使用 `web/package-lock.json`；`--legacy-peer-deps` 沿用旧发布流程的兼容模式，安装与生成锁文件必须使用同一模式。只有确实调整依赖时才运行 `npm install --legacy-peer-deps` 更新锁文件，日常构建使用 `npm ci --legacy-peer-deps`。不顺手迁移前端工具链。
