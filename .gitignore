@@ -69,6 +69,8 @@ coverage/
 test-results/
 playwright-report/
 .cache/
+__pycache__/
+*.py[cod]
 *.db
 *.db-*
 *.mv.db

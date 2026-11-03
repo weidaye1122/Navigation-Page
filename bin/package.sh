@@ -1,9 +1,11 @@
-#! /bin/bash
-cd ..
-cd web
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_dir/web"
 npm run build
-cd ..
+cd "$repo_dir"
 mvn clean compile -DskipTests
-cp -rf web/dist/* target/classes/static/
+cp -R web/dist/. target/classes/static/
 mvn package -DskipTests
-echo 打包完成
+printf '打包完成\n'

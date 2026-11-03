@@ -4,32 +4,44 @@
 
 开发和测试在本地完成，程序仅通过 [Docker Hub](https://hub.docker.com/r/weidaye1122/navigation-page) 分发。开发约定见 [AGENTS.md](AGENTS.md)，测试与正式发布步骤见 [维护说明](docs/maintenance.md)，版本变化见 [CHANGELOG.md](CHANGELOG.md)。
 
-本机资料放在代码目录旁的 `../本地资料/`：记录、日志和截图随任务放入 `验证/日期-任务/`，不单独预留 `截图/`；构建、发布的日志和元数据放入 `验证/发布/版本号/`。实际产生离线镜像文件时才创建 `镜像归档/`，具体见 [本地资料目录](docs/maintenance.md#本地资料目录)。
+本机资料放在代码目录旁的 `../本地资料/`：记录、日志和截图随任务放入 `验证/日期-任务/尝试-…/`，不单独预留 `截图/`；构建、发布日志和元数据放入 `验证/发布/版本号/尝试-…/`。每次执行由 [记录工具](bin/record.py) 原子创建全新尝试目录；目录已存在（包括空目录）或创建/写入失败就停止，不继续构建或发布。重试换新的尝试子目录，不能清空、删除或移动旧记录来复用路径。实际产生离线镜像文件时才创建 `镜像归档/`，具体见 [记录目录与失败停止](docs/maintenance.md#记录目录与失败停止)。
 
 ## 本地构建与试用
 
-从代码根目录执行，需要 Docker 和 Buildx。Dockerfile 在本机容器内构建前端，再将其打入 JAR；宿主机无需预装 Node、Java 或 Maven。
+从代码根目录执行，需要 Docker、Buildx 和 Python 3（记录工具仅用标准库）。Dockerfile 在本机容器内构建前端，再将其打入 JAR；宿主机无需预装 Node、Java 或 Maven。下面整个代码块作为一次操作执行，任一步失败即停止：
 
 ```sh
-docker buildx build --load -t navigation-page:dev .
+bash <<'BASH'
+set -euo pipefail
+build_version="$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("pom.xml").findtext("{http://maven.apache.org/POM/4.0.0}version"))')"
+attempt_dir="../本地资料/验证/发布/$build_version/尝试-$(date +%Y%m%d-%H%M%S)-本地构建-01"
+python3 bin/record.py "$attempt_dir" -- \
+  docker buildx build --load -t navigation-page:dev \
+  --metadata-file "$attempt_dir/build.json" .
+BASH
 ```
 
 下面只创建全新试用数据，访问 <http://127.0.0.1:18082>。先确认该本地端口空闲；首次打开按页面提示初始化管理员。`dev` 是本地标签，不上传。
 
 ```sh
-mkdir -p ../本地资料/验证
-test_root="$(mktemp -d "$(cd .. && pwd)/本地资料/验证/$(date +%Y-%m-%d)-试用-XXXXXX")"
-local_name="navigation-page-local-$(date +%Y%m%d%H%M%S)"
-mkdir -p "$test_root/database" "$test_root/ext-resources" "$test_root/logs"
-docker run --rm --name "$local_name" \
-  -p 127.0.0.1:18082:8080 \
-  --mount "type=bind,source=$test_root/database,target=/database" \
-  --mount "type=bind,source=$test_root/ext-resources,target=/ext-resources" \
-  --mount "type=bind,source=$test_root/logs,target=/logs" \
-  navigation-page:dev
+bash <<'BASH'
+set -euo pipefail
+attempt_dir="../本地资料/验证/$(date +%Y-%m-%d)-试用/尝试-$(date +%H%M%S)-01"
+python3 bin/record.py "$attempt_dir" -- bash -euo pipefail -c '
+  test_root="$NAV_RECORD_DIR/专用数据"
+  mkdir "$test_root"
+  mkdir "$test_root/database" "$test_root/ext-resources" "$test_root/logs"
+  docker run --rm --name "navigation-page-local-$(date +%s)-$$" \
+    -p 127.0.0.1:18082:8080 \
+    --mount "type=bind,source=$test_root/database,target=/database" \
+    --mount "type=bind,source=$test_root/ext-resources,target=/ext-resources" \
+    --mount "type=bind,source=$test_root/logs,target=/logs" \
+    navigation-page:dev
+'
+BASH
 ```
 
-按 Ctrl+C 停止试用；容器自动移除，试用目录保留，确认不再需要后只删除这个目录。前端热更新及基本检查见 [开发与测试](docs/maintenance.md#开发与测试)。
+按 Ctrl+C 停止试用；容器自动移除，本次日志、结果和专用数据保留，记录位置由工具输出。重试使用新的尝试子目录，不删除旧目录来复用名称。前端热更新及基本检查见 [开发与测试](docs/maintenance.md#开发与测试)。
 
 ## 群晖 Compose 使用
 
