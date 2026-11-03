@@ -19,5 +19,4 @@ selenium-debug.log
 *.sln
 *.local
 
-package-lock.json
-yarn.lock
+# 依赖锁文件允许纳入版本管理；不要同时引入不同包管理器的锁文件。

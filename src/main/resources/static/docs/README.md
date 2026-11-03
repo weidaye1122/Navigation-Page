@@ -93,34 +93,11 @@ Springboot、SpringDataJpa、SpringSecurity、h2database
 
 ## 部署说明
 
-通过常规maven命令构建，打包执行命令`mvn clean package -Dmaven.npm.skip=false`，会自动将前端构建到后端的jar包中，这样整个服务就一个jar包（当然如果想前后端分离部署也是可以的，这里不再赘述），再无其他依赖服务，仅需要jdk环境即可启动。
+Navigation Page 现由维护者在本地构建，仅通过 [Docker Hub](https://hub.docker.com/r/weidaye1122/navigation-page) 分发镜像，保留 amd64 / arm64。启动、更新、数据挂载和完整备份恢复以 [项目 README](https://github.com/weidaye1122/Navigation-Page/blob/main/README.md) 为准；开发与发布见 [维护说明](https://github.com/weidaye1122/Navigation-Page/blob/main/docs/maintenance.md)。
 
-> 如果已经部署了1.X版本的也是直接用2.0版本的jar启动，或者重新拉取镜像启动即可，数据会自动矫正
+不再提供 GitHub Releases 的 Linux 压缩包。单独运行 Maven 不会自动构建前端，完整镜像统一使用仓库 Dockerfile 构建。页面导出的备份包含数据库 JSON、附件、图片和托管模块，不含外置配置；页面恢复会跳过已存在的数据库 ID，完整回退应使用更新前同一时点的配置、数据库和资源备份。
 
-#### 方式一：手动部署
-
-从[Releases](https://github.com/weidaye1122/Navigation-Page/releases)下载Navigation-Page.tar.gz放到服务器上解压，对应修改config/application.yml文件，使用Navigation-Page/bin/start.sh 启动项目即可。
-
-#### 方式二：docker部署
-
-docker启动
-
-```
-docker run -d -p 8082:8080 \
--v /opt/Navigation-Page/logs:/logs \
--v /opt/Navigation-Page/database:/database \
--v /opt/Navigation-Page/ext-resources:/ext-resources \
--e nav-name="Navigation-Page" \
-weidaye1122/navigation-page:latest
-
-```
-
-参数说明：
-
-- logs、database、ext-resources分别将日志，数据库文件，额外资源（自定义图标、网址文件、附件等）挂载出来。
-- nav-name：导航服务的名字，可不传，默认"Navigation-Page"。
-
-其他参数参考config/application.yml，可以将此文件挂载出来修改配置，也可通过`docker`的`-e`参数替换`application.yml`中的配置。
+下面的 nginx 与数据库说明保留原项目功能参考。示例账号仅为公开示例，实际连接信息应放在外置配置中；不要直接照搬示例密码。历史版本记录和截图不代表当前环境验收。
 
 #### nginx部署（非必须）
 
