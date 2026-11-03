@@ -6,6 +6,6 @@ cd "$repo_dir/web"
 npm run build
 cd "$repo_dir"
 mvn clean compile -DskipTests
-cp -R web/dist/. target/classes/static/
+cp -rf web/dist/* target/classes/static/
 mvn package -DskipTests
 printf '打包完成\n'
